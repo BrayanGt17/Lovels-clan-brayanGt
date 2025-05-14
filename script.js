@@ -1,43 +1,26 @@
+// script.js
 import { db } from './firebase-config.js';
 import {
   collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-// Elementos del DOM
 const form = document.getElementById('registroForm');
 const lista = document.getElementById('listaMiembros');
 
-// Función para mostrar alertas
-function showAlert(message, type = 'success') {
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${type}`;
-  alert.textContent = message;
-  document.body.appendChild(alert);
-  
-  setTimeout(() => {
-    alert.remove();
-  }, 3000);
-}
-
-// Registrar nuevo miembro
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const nombre = document.getElementById('nombre').value.trim();
   const idff = document.getElementById('idff').value.trim();
-  const telefono = document.getElementById('telefono').value.trim().replace(/\D/g, '');
+  const telefono = document.getElementById('telefono').value.trim();
   const escuadra = document.getElementById('escuadra').value;
 
   if (!nombre || !idff || !telefono || !escuadra) {
-    showAlert('Completa todos los campos', 'error');
+    alert("Completa todos los campos.");
     return;
   }
 
   try {
-    const button = form.querySelector('button');
-    button.disabled = true;
-    button.textContent = 'Registrando...';
-
     await addDoc(collection(db, 'miembros'), {
       nombre,
       idff,
@@ -46,81 +29,38 @@ form.addEventListener('submit', async (e) => {
       timestamp: new Date()
     });
 
-    showAlert('✅ Miembro registrado correctamente');
+    alert("✅ ¡Registrado!");
     form.reset();
-    await mostrarMiembros();
+    mostrarMiembros();
   } catch (error) {
     console.error("Error:", error);
-    showAlert('❌ Error al registrar: ' + error.message, 'error');
-  } finally {
-    const button = form.querySelector('button');
-    button.disabled = false;
-    button.textContent = 'Registrar';
+    alert("❌ Hubo un error.");
   }
 });
 
-// Mostrar miembros agrupados por escuadra
 async function mostrarMiembros() {
-  try {
-    lista.innerHTML = '<p>Cargando miembros...</p>';
-    
-    const querySnapshot = await getDocs(collection(db, 'miembros'));
-    const miembrosPorEscuadra = {};
-    
-    querySnapshot.forEach(doc => {
-      const data = doc.data();
-      if (!miembrosPorEscuadra[data.escuadra]) {
-        miembrosPorEscuadra[data.escuadra] = [];
-      }
-      miembrosPorEscuadra[data.escuadra].push(data);
-    });
+  lista.innerHTML = "Cargando...";
 
-    // Ordenar escuadras numéricamente
-    const escuadrasOrdenadas = Object.keys(miembrosPorEscuadra).sort((a, b) => {
-      const numA = parseInt(a.replace(/\D/g, ''));
-      const numB = parseInt(b.replace(/\D/g, ''));
-      return numA - numB;
-    });
+  const miembrosSnap = await getDocs(query(collection(db, "miembros"), orderBy("escuadra")));
+  const escuadras = {};
 
-    let html = '';
-    escuadrasOrdenadas.forEach(escuadra => {
-      html += `<div class="escuadra-group">`;
-      html += `<h3 class="escuadra-title">${escuadra}</h3>`;
-      html += `<ul class="miembros-list">`;
-      
-      // Ordenar miembros por nombre dentro de cada escuadra
-      miembrosPorEscuadra[escuadra].sort((a, b) => a.nombre.localeCompare(b.nombre))
-        .forEach(miembro => {
-          html += `
-            <li class="miembro-item">
-              <span class="miembro-nombre">${miembro.nombre}</span>
-              <span class="miembro-id">ID: ${miembro.idff}</span>
-              <span class="miembro-telefono">📞 ${formatearTelefono(miembro.telefono)}</span>
-            </li>
-          `;
-        });
-      
-      html += `</ul></div>`;
-    });
+  miembrosSnap.forEach(doc => {
+    const d = doc.data();
+    if (!escuadras[d.escuadra]) escuadras[d.escuadra] = [];
+    escuadras[d.escuadra].push(d);
+  });
 
-    lista.innerHTML = html || '<p>No hay miembros registrados aún.</p>';
-  } catch (error) {
-    console.error("Error al cargar miembros:", error);
-    lista.innerHTML = `
-      <div class="error">
-        <p>Error al cargar miembros</p>
-        <button onclick="mostrarMiembros()">Reintentar</button>
-      </div>
-    `;
-  }
+  let html = '';
+  Object.keys(escuadras).forEach(nombre => {
+    html += `<h3>${nombre}</h3><ul>`;
+    escuadras[nombre].forEach(m => {
+      html += `<li><strong>${m.nombre}</strong> | ID: ${m.idff} | 📞 ${m.telefono}</li>`;
+    });
+    html += '</ul>';
+  });
+
+  lista.innerHTML = html || "No hay miembros aún.";
 }
 
-// Formatear número de teléfono
-function formatearTelefono(numero) {
-  if (!numero) return 'N/A';
-  const soloNumeros = numero.toString().replace(/\D/g, '');
-  return soloNumeros.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-}
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', mostrarMiembros);
+// Mostrar lista al cargar
+mostrarMiembros();

@@ -1,8 +1,8 @@
 // script.js
 import { db } from './firebase-config.js';
-import { ref, push, set } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-document.getElementById('registroForm').addEventListener('submit', function(e) {
+document.getElementById('registroForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const nombre = document.getElementById('nombre').value.trim();
@@ -10,23 +10,22 @@ document.getElementById('registroForm').addEventListener('submit', function(e) {
   const escuadra = document.getElementById('escuadra').value;
 
   if (!nombre || !telefono || !escuadra) {
-    alert("Por favor completa todos los campos.");
+    alert("Por favor, completa todos los campos.");
     return;
   }
 
-  const miembrosRef = ref(db, "miembros");
-  const nuevoMiembroRef = push(miembrosRef);
+  try {
+    await addDoc(collection(db, 'miembros'), {
+      nombre,
+      telefono,
+      escuadra,
+      timestamp: new Date()
+    });
 
-  set(nuevoMiembroRef, {
-    nombre,
-    telefono,
-    escuadra
-  })
-  .then(() => {
-    alert("Miembro registrado con éxito 💖");
+    alert("✅ ¡Registrado correctamente!");
     document.getElementById('registroForm').reset();
-  })
-  .catch((error) => {
-    alert("Error al registrar: " + error.message);
-  });
+  } catch (error) {
+    console.error("Error al registrar:", error);
+    alert("❌ Error al registrar. Intenta de nuevo.");
+  }
 });

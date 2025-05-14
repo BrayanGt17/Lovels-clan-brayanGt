@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Registro de Escuadras</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://unpkg.com/intl-tel-input@17.0.8/build/js/intlTelInput.min.js"></script>
-  <link rel="stylesheet" href="https://unpkg.com/intl-tel-input@17.0.8/build/css/intlTelInput.css" />
 </head>
 <body>
   <h1>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ</h1>
@@ -19,6 +17,9 @@
 
     <label>ID de Free Fire:</label>
     <input type="text" id="idff" required />
+
+    <label>País:</label>
+    <input type="text" id="pais" required />
 
     <label>Número de teléfono:</label>
     <input type="tel" id="telefono" required />
@@ -39,20 +40,5 @@
   <!-- Firebase y Scripts -->
   <script type="module" src="firebase-config.js"></script>
   <script type="module" src="script.js"></script>
-
-  <!-- Inicializar input con bandera -->
-  <script>
-    const input = document.querySelector("#telefono");
-    window.intlTelInput(input, {
-      initialCountry: "auto",
-      geoIpLookup: function (callback) {
-        fetch("https://ipapi.co/json")
-          .then((resp) => resp.json())
-          .then((resp) => callback(resp.country))
-          .catch(() => callback("gt"));
-      },
-      utilsScript: "https://unpkg.com/intl-tel-input@17.0.8/build/js/utils.js",
-    });
-  </script>
 </body>
 </html>

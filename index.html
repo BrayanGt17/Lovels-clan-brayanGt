@@ -288,6 +288,14 @@
       transform: translateY(0);
     }
     
+    .btn-secondary {
+      background-color: var(--gray);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    
     .members-section {
       margin-top: 30px;
     }
@@ -417,6 +425,28 @@
       pointer-events: none;
     }
     
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    
+    .checkbox-container input[type="checkbox"] {
+      width: auto;
+      transform: scale(1.2);
+    }
+    
+    .actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .actions button {
+      flex: 1;
+    }
+    
     @keyframes fadeInOut {
       0% { opacity: 0; transform: translateY(10px); }
       20% { opacity: 1; transform: translateY(0); }
@@ -469,6 +499,10 @@
       .miembros-list {
         grid-template-columns: 1fr;
       }
+      
+      .actions {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -489,7 +523,7 @@
         <div class="stat-box">
           <i class="fas fa-users stat-icon"></i>
           <div>
-            <div class="stat-value">55</div>
+            <div class="stat-value" id="totalMiembros">0</div>
             <div class="stat-label">Miembros</div>
           </div>
         </div>
@@ -508,11 +542,11 @@
         <div class="war-days">
           <div class="war-day">Lunes</div>
           <div class="war-day">Martes</div>
-          <div class="war-day">Miércoles</div>
-          <div class="war-day active">Jueves</div>
+          <div class="war-day active">Miércoles</div>
+          <div class="war-day">Jueves</div>
           <div class="war-day">Viernes</div>
-          <div class="war-day active">Sábado</div>
-          <div class="war-day active">Domingo</div>
+          <div class="war-day">Sábado</div>
+          <div class="war-day">Domingo</div>
         </div>
         <div class="war-time">
           <i class="fas fa-clock"></i> 6:00 PM - 10:00 PM (Hora México)
@@ -546,14 +580,15 @@
           <div class="form-group">
             <select id="escuadra" required>
               <option value="">Selecciona una escuadra</option>
-              <option value="Escuadra 1">Escuadra 1 (Líder: CarlosFF)</option>
-              <option value="Escuadra 2">Escuadra 2 (Líder: MariaGG)</option>
-              <option value="Escuadra 3">Escuadra 3 (Líder: JuanKiller)</option>
-              <option value="Escuadra 4">Escuadra 4 (Líder: AnaPro)</option>
-              <option value="Escuadra 5">Escuadra 5 (Líder: LuisShot)</option>
-              <option value="Escuadra 6">Escuadra 6 (Líder: PedroSniper)</option>
-              <option value="Escuadra 7">Escuadra 7 (Líder: SofiaMVP)</option>
+              <!-- Las opciones se cargarán dinámicamente -->
             </select>
+          </div>
+          
+          <div class="form-group">
+            <div class="checkbox-container">
+              <input type="checkbox" id="esLider">
+              <label for="esLider">¿Es líder de escuadra?</label>
+            </div>
           </div>
 
           <button type="submit">
@@ -564,12 +599,9 @@
       
       <div id="miembros-tab" class="tab-content">
         <section class="members-section">
-          <h2 class="section-title"><i class="fas fa-users"></i> Todos los Miembros (55)</h2>
+          <h2 class="section-title"><i class="fas fa-users"></i> Todos los Miembros (<span id="contadorMiembros">0</span>)</h2>
           <div id="listaMiembros">
-            <!-- Los miembros se cargarán aquí dinámicamente -->
-            <div class="loading">
-              <i class="fas fa-spinner fa-spin"></i> Cargando miembros...
-            </div>
+            <div class="empty">No hay miembros registrados aún.</div>
           </div>
         </section>
       </div>
@@ -577,41 +609,19 @@
       <div id="escuadras-tab" class="tab-content">
         <section class="members-section">
           <h2 class="section-title"><i class="fas fa-users"></i> Estructura de Escuadras</h2>
-          
-          <div class="escuadra-group">
-            <div class="escuadra-header">
-              <div class="escuadra-title">
-                <i class="fas fa-users"></i> Escuadra 1
-              </div>
-              <div class="escuadra-leader">
-                <i class="fas fa-crown"></i> Líder: CarlosFF
-              </div>
-            </div>
-            <ul class="miembros-list">
-              <li class="miembro-item lider">
-                <div class="miembro-nombre">
-                  CarlosFF <span class="lider-badge">LÍDER</span>
-                </div>
-                <div class="miembro-detail">
-                  <i class="fas fa-id-card"></i> ID: 123456789
-                </div>
-                <div class="miembro-detail">
-                  <i class="fas fa-phone"></i> 📞 (555) 123-4567
-                </div>
-              </li>
-              <!-- Más miembros de la escuadra... -->
-            </ul>
+          <div id="estructuraEscuadras">
+            <div class="empty">No hay escuadras registradas aún.</div>
           </div>
-          
-          <!-- Más escuadras... -->
-          
         </section>
       </div>
     </main>
   </div>
-
-  <script type="module" src="script.js"></script>
+  
   <script>
+    // Datos de ejemplo (en un caso real, estos vendrían de una base de datos)
+    let miembros = [];
+    let escuadras = [];
+    
     // Función para copiar el ID del clan
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -646,16 +656,321 @@
       // Activar la pestaña seleccionada
       document.getElementById(`${tabId}-tab`).classList.add('active');
       event.currentTarget.classList.add('active');
+      
+      // Actualizar la pestaña específica si es necesario
+      if (tabId === 'miembros') {
+        actualizarListaMiembros();
+      } else if (tabId === 'escuadras') {
+        actualizarEstructuraEscuadras();
+      }
     }
 
-    // Mostrar día actual en el horario de guerra
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const today = new Date().getDay();
-    document.querySelectorAll('.war-day').forEach((day, index) => {
-      if (index === today) {
-        day.classList.add('today');
+    // Función para actualizar el select de escuadras
+    function actualizarSelectEscuadras() {
+      const select = document.getElementById('escuadra');
+      select.innerHTML = '<option value="">Selecciona una escuadra</option>';
+      
+      // Si no hay escuadras, agregamos 4 por defecto
+      if (escuadras.length === 0) {
+        for (let i = 1; i <= 4; i++) {
+          escuadras.push({
+            nombre: `Escuadra ${i}`,
+            lider: null
+          });
+        }
       }
+      
+      // Agregar cada escuadra al select
+      escuadras.forEach(escuadra => {
+        const option = document.createElement('option');
+        option.value = escuadra.nombre;
+        option.textContent = escuadra.lider 
+          ? `${escuadra.nombre} (Líder: ${escuadra.lider})`
+          : escuadra.nombre;
+        select.appendChild(option);
+      });
+    }
+    
+    // Función para actualizar la lista de miembros
+    function actualizarListaMiembros() {
+      const listaContainer = document.getElementById('listaMiembros');
+      const contador = document.getElementById('contadorMiembros');
+      const totalMiembros = document.getElementById('totalMiembros');
+      
+      contador.textContent = miembros.length;
+      totalMiembros.textContent = miembros.length;
+      
+      if (miembros.length === 0) {
+        listaContainer.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
+        return;
+      }
+      
+      listaContainer.innerHTML = '<ul class="miembros-list"></ul>';
+      const miembrosList = listaContainer.querySelector('ul');
+      
+      miembros.forEach(miembro => {
+        const miembroItem = document.createElement('li');
+        miembroItem.className = miembro.esLider ? 'miembro-item lider' : 'miembro-item';
+        
+        const nombreDiv = document.createElement('div');
+        nombreDiv.className = 'miembro-nombre';
+        nombreDiv.textContent = miembro.nombre;
+        
+        if (miembro.esLider) {
+          const badge = document.createElement('span');
+          badge.className = 'lider-badge';
+          badge.textContent = 'LÍDER';
+          nombreDiv.appendChild(badge);
+        }
+        
+        const escuadraDiv = document.createElement('div');
+        escuadraDiv.className = 'miembro-detail';
+        escuadraDiv.innerHTML = `<i class="fas fa-users"></i> Escuadra: ${miembro.escuadra}`;
+        
+        const idDiv = document.createElement('div');
+        idDiv.className = 'miembro-detail';
+        idDiv.innerHTML = `<i class="fas fa-id-card"></i> ID: ${miembro.idff}`;
+        
+        const telDiv = document.createElement('div');
+        telDiv.className = 'miembro-detail';
+        telDiv.innerHTML = `<i class="fas fa-phone"></i> 📞 ${miembro.telefono}`;
+        
+        miembroItem.appendChild(nombreDiv);
+        miembroItem.appendChild(escuadraDiv);
+        miembroItem.appendChild(idDiv);
+        miembroItem.appendChild(telDiv);
+        miembrosList.appendChild(miembroItem);
+      });
+    }
+    
+    // Función para actualizar la visualización de escuadras
+    function actualizarEstructuraEscuadras() {
+      const escuadrasContainer = document.getElementById('estructuraEscuadras');
+      
+      if (escuadras.length === 0) {
+        escuadrasContainer.innerHTML = '<div class="empty">No hay escuadras registradas aún.</div>';
+        return;
+      }
+      
+      escuadrasContainer.innerHTML = '';
+      
+      escuadras.forEach(escuadra => {
+        // Crear contenedor de escuadra
+        const escuadraGroup = document.createElement('div');
+        escuadraGroup.className = 'escuadra-group';
+        
+        // Crear encabezado de escuadra
+        const escuadraHeader = document.createElement('div');
+        escuadraHeader.className = 'escuadra-header';
+        
+        const escuadraTitle = document.createElement('div');
+        escuadraTitle.className = 'escuadra-title';
+        escuadraTitle.innerHTML = `<i class="fas fa-users"></i> ${escuadra.nombre}`;
+        
+        const escuadraLeader = document.createElement('div');
+        escuadraLeader.className = 'escuadra-leader';
+        escuadraLeader.innerHTML = escuadra.lider 
+          ? `<i class="fas fa-crown"></i> Líder: ${escuadra.lider}`
+          : '<i class="fas fa-exclamation-circle"></i> Sin líder asignado';
+        
+        escuadraHeader.appendChild(escuadraTitle);
+        escuadraHeader.appendChild(escuadraLeader);
+        escuadraGroup.appendChild(escuadraHeader);
+        
+        // Crear lista de miembros
+        const miembrosList = document.createElement('ul');
+        miembrosList.className = 'miembros-list';
+        
+        // Filtrar miembros de esta escuadra
+        const miembrosEscuadra = miembros.filter(m => m.escuadra === escuadra.nombre);
+        
+        if (miembrosEscuadra.length === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'miembro-item';
+          emptyItem.textContent = 'No hay miembros en esta escuadra.';
+          miembrosList.appendChild(emptyItem);
+        } else {
+          miembrosEscuadra.forEach(miembro => {
+            const miembroItem = document.createElement('li');
+            miembroItem.className = miembro.esLider ? 'miembro-item lider' : 'miembro-item';
+            
+            const nombreDiv = document.createElement('div');
+            nombreDiv.className = 'miembro-nombre';
+            nombreDiv.textContent = miembro.nombre;
+            
+            if (miembro.esLider) {
+              const badge = document.createElement('span');
+              badge.className = 'lider-badge';
+              badge.textContent = 'LÍDER';
+              nombreDiv.appendChild(badge);
+            }
+            
+            const idDiv = document.createElement('div');
+            idDiv.className = 'miembro-detail';
+            idDiv.innerHTML = `<i class="fas fa-id-card"></i> ID: ${miembro.idff}`;
+            
+            const telDiv = document.createElement('div');
+            telDiv.className = 'miembro-detail';
+            telDiv.innerHTML = `<i class="fas fa-phone"></i> 📞 ${miembro.telefono}`;
+            
+            miembroItem.appendChild(nombreDiv);
+            miembroItem.appendChild(idDiv);
+            miembroItem.appendChild(telDiv);
+            miembrosList.appendChild(miembroItem);
+          });
+        }
+        
+        escuadraGroup.appendChild(miembrosList);
+        escuadrasContainer.appendChild(escuadraGroup);
+      });
+    }
+    
+    // Función para manejar el envío del formulario
+    document.getElementById('registroForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nombre = document.getElementById('nombre').value.trim();
+      const idff = document.getElementById('idff').value.trim();
+      const telefono = document.getElementById('telefono').value.trim();
+      const escuadra = document.getElementById('escuadra').value;
+      const esLider = document.getElementById('esLider').checked;
+      
+      // Validaciones básicas
+      if (!nombre || !idff || !telefono || !escuadra) {
+        alert('Por favor completa todos los campos obligatorios');
+        return;
+      }
+      
+      // Verificar si el ID ya existe
+      if (miembros.some(m => m.idff === idff)) {
+        alert('Este ID de Free Fire ya está registrado');
+        return;
+      }
+      
+      // Verificar si ya hay un líder en esta escuadra
+      if (esLider) {
+        const escuadraSeleccionada = escuadras.find(e => e.nombre === escuadra);
+        if (escuadraSeleccionada && escuadraSeleccionada.lider) {
+          if (confirm(`La ${escuadra} ya tiene a ${escuadraSeleccionada.lider} como líder. ¿Deseas reemplazarlo?`)) {
+            // Quitar el estado de líder al miembro anterior
+            const antiguoLider = miembros.find(m => m.nombre === escuadraSeleccionada.lider && m.escuadra === escuadra);
+            if (antiguoLider) {
+              antiguoLider.esLider = false;
+            }
+          } else {
+            return;
+          }
+        }
+      }
+      
+      // Crear nuevo miembro
+      const nuevoMiembro = {
+        nombre,
+        idff,
+        telefono,
+        escuadra,
+        esLider
+      };
+      
+      // Agregar a la lista de miembros
+      miembros.push(nuevoMiembro);
+      
+      // Si es líder, actualizar la escuadra correspondiente
+      if (esLider) {
+        const escuadraIndex = escuadras.findIndex(e => e.nombre === escuadra);
+        if (escuadraIndex !== -1) {
+          escuadras[escuadraIndex].lider = nombre;
+        }
+      }
+      
+      // Actualizar las visualizaciones
+      actualizarSelectEscuadras();
+      actualizarListaMiembros();
+      actualizarEstructuraEscuadras();
+      
+      // Limpiar formulario
+      this.reset();
+      
+      // Mostrar mensaje de éxito
+      alert('Miembro registrado exitosamente!');
     });
+    
+    // Inicializar con datos de ejemplo
+    function inicializarDatos() {
+      // Crear 4 escuadras numeradas
+      for (let i = 1; i <= 4; i++) {
+        escuadras.push({
+          nombre: `Escuadra ${i}`,
+          lider: null
+        });
+      }
+      
+      // Datos de ejemplo para miembros
+      miembros = [
+        {
+          nombre: 'CarlosFF',
+          idff: '123456789',
+          telefono: '(555) 123-4567',
+          escuadra: 'Escuadra 1',
+          esLider: true
+        },
+        {
+          nombre: 'MariaGG',
+          idff: '987654321',
+          telefono: '(555) 765-4321',
+          escuadra: 'Escuadra 2',
+          esLider: true
+        },
+        {
+          nombre: 'JuanKiller',
+          idff: '456789123',
+          telefono: '(555) 456-7890',
+          escuadra: 'Escuadra 1',
+          esLider: false
+        },
+        {
+          nombre: 'AnaPro',
+          idff: '321654987',
+          telefono: '(555) 321-6549',
+          escuadra: 'Escuadra 3',
+          esLider: true
+        },
+        {
+          nombre: 'LuisShot',
+          idff: '789123456',
+          telefono: '(555) 789-1234',
+          escuadra: 'Escuadra 4',
+          esLider: true
+        }
+      ];
+      
+      // Actualizar el líder en las escuadras
+      miembros.forEach(miembro => {
+        if (miembro.esLider) {
+          const escuadra = escuadras.find(e => e.nombre === miembro.escuadra);
+          if (escuadra) {
+            escuadra.lider = miembro.nombre;
+          }
+        }
+      });
+      
+      // Actualizar los días activos en el horario de guerra (Miércoles, Sábado y Domingo)
+      document.querySelectorAll('.war-day').forEach((day, index) => {
+        // 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+        if (index === 3 || index === 6 || index === 0) { // Miércoles, Sábado y Domingo
+          day.classList.add('active');
+        } else {
+          day.classList.remove('active');
+        }
+      });
+      
+      actualizarSelectEscuadras();
+      actualizarListaMiembros();
+      actualizarEstructuraEscuadras();
+    }
+    
+    // Inicializar cuando se carga la página
+    window.addEventListener('DOMContentLoaded', inicializarDatos);
   </script>
 </body>
 </html>

@@ -5,479 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Gestión de Clan</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-  <style>
-    :root {
-      --primary: #4361ee;
-      --primary-dark: #3a56d4;
-      --secondary: #3f37c9;
-      --dark: #212529;
-      --light: #f8f9fa;
-      --gray: #6c757d;
-      --success: #4cc9f0;
-      --danger: #ef233c;
-      --warning: #f4a261;
-      --border-radius: 12px;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      --transition: all 0.3s ease;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
-      background-color: #f5f7ff;
-      color: var(--dark);
-      line-height: 1.6;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    
-    .container {
-      width: 100%;
-      max-width: 1000px;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      margin: 0 auto;
-    }
-    
-    header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 30px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: -50px;
-      left: -50px;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-    }
-    
-    header::before {
-      content: '';
-      position: absolute;
-      top: -30px;
-      right: -30px;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-    }
-    
-    h1 {
-      font-size: 2.2rem;
-      margin-bottom: 8px;
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .clan-stats {
-      display: flex;
-      justify-content: center;
-      gap: 25px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .stat-box {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 12px 20px;
-      border-radius: var(--border-radius);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: var(--transition);
-    }
-    
-    .stat-box.clickable {
-      cursor: pointer;
-    }
-    
-    .stat-box.clickable:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-    
-    .stat-icon {
-      font-size: 1.2rem;
-    }
-    
-    .stat-value {
-      font-weight: 600;
-    }
-    
-    .stat-label {
-      font-size: 0.85rem;
-      opacity: 0.9;
-    }
-    
-    .war-schedule {
-      background: rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      border-radius: var(--border-radius);
-      margin-top: 20px;
-      text-align: left;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    
-    .war-schedule h3 {
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.1rem;
-    }
-    
-    .war-days {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    
-    .war-day {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      text-align: center;
-      flex: 1;
-    }
-    
-    .war-day.active {
-      background: var(--warning);
-      color: var(--dark);
-      font-weight: 600;
-    }
-    
-    .war-time {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      opacity: 0.9;
-      text-align: center;
-    }
-    
-    main {
-      padding: 30px;
-    }
-    
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid #e9ecef;
-      margin-bottom: 25px;
-    }
-    
-    .tab {
-      padding: 12px 20px;
-      cursor: pointer;
-      font-weight: 500;
-      border-bottom: 3px solid transparent;
-      transition: var(--transition);
-    }
-    
-    .tab.active {
-      border-bottom-color: var(--primary);
-      color: var(--primary);
-    }
-    
-    .tab:hover:not(.active) {
-      background: #f8f9fa;
-    }
-    
-    .tab-content {
-      display: none;
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
-    form {
-      background: var(--light);
-      padding: 30px;
-      border-radius: var(--border-radius);
-      margin-bottom: 40px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
-    }
-    
-    form h2 {
-      font-size: 1.5rem;
-      margin-bottom: 25px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .form-group {
-      margin-bottom: 20px;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--dark);
-    }
-    
-    input, select {
-      width: 100%;
-      padding: 15px;
-      border: 2px solid #e9ecef;
-      border-radius: var(--border-radius);
-      font-size: 1rem;
-      transition: var(--transition);
-      background-color: white;
-    }
-    
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-    }
-    
-    select {
-      appearance: none;
-      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-      background-repeat: no-repeat;
-      background-position: right 15px center;
-      background-size: 16px;
-      padding-right: 40px;
-    }
-    
-    button {
-      width: 100%;
-      padding: 16px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    button:hover {
-      background-color: var(--primary-dark);
-      transform: translateY(-2px);
-    }
-    
-    button:active {
-      transform: translateY(0);
-    }
-    
-    .members-section {
-      margin-top: 30px;
-    }
-    
-    .section-title {
-      font-size: 1.5rem;
-      margin-bottom: 20px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    #listaMiembros {
-      background: var(--light);
-      border-radius: var(--border-radius);
-      padding: 20px;
-      min-height: 100px;
-    }
-    
-    .escuadra-group {
-      margin-bottom: 30px;
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
-    }
-    
-    .escuadra-header {
-      background-color: var(--primary);
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .escuadra-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .escuadra-leader {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 5px 10px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
-    .miembros-list {
-      list-style: none;
-      padding: 15px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 15px;
-    }
-    
-    .miembro-item {
-      background: var(--light);
-      padding: 15px;
-      border-radius: 8px;
-      transition: var(--transition);
-      border-left: 3px solid var(--primary);
-    }
-    
-    .miembro-item.lider {
-      border-left-color: var(--warning);
-      background: rgba(244, 162, 97, 0.1);
-    }
-    
-    .miembro-nombre {
-      font-weight: 600;
-      color: var(--dark);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .miembro-nombre .lider-badge {
-      background: var(--warning);
-      color: var(--dark);
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    
-    .miembro-detail {
-      color: var(--gray);
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 5px;
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 30px;
-      color: var(--gray);
-      font-style: italic;
-    }
-    
-    .empty {
-      text-align: center;
-      padding: 30px;
-      color: var(--gray);
-    }
-    
-    .tooltip-copied {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: var(--primary);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 5px;
-      z-index: 1000;
-      animation: fadeInOut 2s ease-out;
-      pointer-events: none;
-    }
-    
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translateY(10px); }
-      20% { opacity: 1; transform: translateY(0); }
-      80% { opacity: 1; transform: translateY(0); }
-      100% { opacity: 0; transform: translateY(-10px); }
-    }
-    
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-      
-      .container {
-        margin: 10px 0;
-      }
-      
-      header {
-        padding: 20px;
-      }
-      
-      h1 {
-        font-size: 1.8rem;
-      }
-      
-      .clan-stats {
-        gap: 10px;
-      }
-      
-      .stat-box {
-        padding: 10px 15px;
-      }
-      
-      .war-days {
-        flex-wrap: wrap;
-      }
-      
-      .war-day {
-        flex: 1 0 40%;
-        margin-bottom: 5px;
-      }
-      
-      main {
-        padding: 20px;
-      }
-      
-      form {
-        padding: 20px;
-      }
-      
-      .miembros-list {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
+    <div id="user-role" class="user-role" style="display: none;"></div>
+    
+    <!-- Panel de Login para Decanos -->
+    <div id="login-section" class="login-form">
+      <h2><i class="fas fa-lock"></i> Acceso Decanos</h2>
+      <div class="form-group">
+        <input type="text" id="login-email" placeholder="Correo de decano" />
+      </div>
+      <div class="form-group">
+        <input type="password" id="login-password" placeholder="Contraseña" />
+      </div>
+      <button onclick="login()">
+        <i class="fas fa-sign-in-alt"></i> Ingresar
+      </button>
+    </div>
+    
     <header>
-      <h1>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Free Fire</h1>
-      
-      <div class="clan-stats">
+      <h1>Registro - ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ</h1>
+      <div class="clan-info">
         <div class="stat-box clickable" onclick="copyToClipboard('2005567140')">
           <i class="fas fa-id-card stat-icon"></i>
           <div>
@@ -485,15 +35,13 @@
             <div class="stat-label">ID del Clan</div>
           </div>
         </div>
-        
         <div class="stat-box">
           <i class="fas fa-users stat-icon"></i>
           <div>
-            <div class="stat-value">55</div>
+            <div class="stat-value" id="total-members">55</div>
             <div class="stat-label">Miembros</div>
           </div>
         </div>
-        
         <div class="stat-box">
           <i class="fas fa-level-up-alt stat-icon"></i>
           <div>
@@ -502,160 +50,152 @@
           </div>
         </div>
       </div>
-      
-      <div class="war-schedule">
-        <h3><i class="fas fa-calendar-alt"></i> Horario de Guerra de Clanes</h3>
-        <div class="war-days">
-          <div class="war-day">Lunes</div>
-          <div class="war-day">Martes</div>
-          <div class="war-day">Miércoles</div>
-          <div class="war-day active">Jueves</div>
-          <div class="war-day">Viernes</div>
-          <div class="war-day active">Sábado</div>
-          <div class="war-day active">Domingo</div>
-        </div>
-        <div class="war-time">
-          <i class="fas fa-clock"></i> 6:00 PM - 10:00 PM (Hora México)
-        </div>
-      </div>
     </header>
 
     <main>
-      <div class="tabs">
-        <div class="tab active" onclick="switchTab('registro')">Registro</div>
-        <div class="tab" onclick="switchTab('miembros')">Miembros</div>
-        <div class="tab" onclick="switchTab('escuadras')">Escuadras</div>
+      <!-- Panel de administración (solo para decanos) -->
+      <div id="admin-panel" class="admin-panel">
+        <h2><i class="fas fa-user-shield"></i> Panel de Decano</h2>
+        
+        <div class="form-group">
+          <label>Asignar Líder de Escuadra</label>
+          <select id="select-squad">
+            <option value="">Seleccionar escuadra</option>
+            <!-- Se llenará dinámicamente -->
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <select id="select-member">
+            <option value="">Seleccionar miembro</option>
+            <!-- Se llenará dinámicamente -->
+          </select>
+        </div>
+        
+        <button onclick="assignLeader()">
+          <i class="fas fa-user-crown"></i> Asignar Líder
+        </button>
+        
+        <button onclick="logout()" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
       </div>
       
-      <div id="registro-tab" class="tab-content active">
-        <form id="registroForm">
-          <h2><i class="fas fa-user-edit"></i> Registro de Miembros</h2>
-          
-          <div class="form-group">
-            <input type="text" id="nombre" placeholder="Nombre en Free Fire" required />
-          </div>
-          
-          <div class="form-group">
-            <input type="text" id="idff" placeholder="ID de Free Fire (solo números)" pattern="\d*" inputmode="numeric" required />
-          </div>
-          
-          <div class="form-group">
-            <input type="tel" id="telefono" placeholder="Número de teléfono" required />
-          </div>
-          
-          <div class="form-group">
-            <select id="escuadra" required>
-              <option value="">Selecciona una escuadra</option>
-              <option value="Escuadra 1">Escuadra 1 (Líder: CarlosFF)</option>
-              <option value="Escuadra 2">Escuadra 2 (Líder: MariaGG)</option>
-              <option value="Escuadra 3">Escuadra 3 (Líder: JuanKiller)</option>
-              <option value="Escuadra 4">Escuadra 4 (Líder: AnaPro)</option>
-              <option value="Escuadra 5">Escuadra 5 (Líder: LuisShot)</option>
-              <option value="Escuadra 6">Escuadra 6 (Líder: PedroSniper)</option>
-              <option value="Escuadra 7">Escuadra 7 (Líder: SofiaMVP)</option>
-            </select>
-          </div>
+      <!-- Formulario de Registro para Miembros -->
+      <form id="registroForm">
+        <h2><i class="fas fa-user-edit"></i> Registro de Miembros</h2>
+        
+        <div class="form-group">
+          <input type="text" id="nombre" placeholder="Nombre en Free Fire" required />
+        </div>
+        
+        <div class="form-group">
+          <input type="text" id="idff" placeholder="ID de Free Fire (solo números)" required />
+        </div>
+        
+        <div class="form-group">
+          <input type="tel" id="telefono" placeholder="Número de teléfono" required />
+        </div>
+        
+        <div class="form-group">
+          <label>Selecciona una escuadra con espacio disponible</label>
+          <select id="escuadra" required>
+            <option value="">Cargando escuadras...</option>
+          </select>
+          <div id="squad-info" class="squad-info"></div>
+        </div>
 
-          <button type="submit">
-            <i class="fas fa-user-plus"></i> Registrar Miembro
-          </button>
-        </form>
-      </div>
-      
-      <div id="miembros-tab" class="tab-content">
-        <section class="members-section">
-          <h2 class="section-title"><i class="fas fa-users"></i> Todos los Miembros (55)</h2>
-          <div id="listaMiembros">
-            <!-- Los miembros se cargarán aquí dinámicamente -->
-            <div class="loading">
-              <i class="fas fa-spinner fa-spin"></i> Cargando miembros...
-            </div>
+        <button type="submit" id="register-btn">
+          <i class="fas fa-user-plus"></i> Registrar Miembro
+        </button>
+      </form>
+
+      <section class="members-section">
+        <h2><i class="fas fa-users"></i> Miembros Registrados</h2>
+        <div id="listaMiembros">
+          <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Cargando miembros...
           </div>
-        </section>
-      </div>
-      
-      <div id="escuadras-tab" class="tab-content">
-        <section class="members-section">
-          <h2 class="section-title"><i class="fas fa-users"></i> Estructura de Escuadras</h2>
-          
-          <div class="escuadra-group">
-            <div class="escuadra-header">
-              <div class="escuadra-title">
-                <i class="fas fa-users"></i> Escuadra 1
-              </div>
-              <div class="escuadra-leader">
-                <i class="fas fa-crown"></i> Líder: CarlosFF
-              </div>
-            </div>
-            <ul class="miembros-list">
-              <li class="miembro-item lider">
-                <div class="miembro-nombre">
-                  CarlosFF <span class="lider-badge">LÍDER</span>
-                </div>
-                <div class="miembro-detail">
-                  <i class="fas fa-id-card"></i> ID: 123456789
-                </div>
-                <div class="miembro-detail">
-                  <i class="fas fa-phone"></i> 📞 (555) 123-4567
-                </div>
-              </li>
-              <!-- Más miembros de la escuadra... -->
-            </ul>
-          </div>
-          
-          <!-- Más escuadras... -->
-          
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
   </div>
 
   <script type="module" src="script.js"></script>
   <script>
-    // Función para copiar el ID del clan
+    // Datos de decanos autorizados
+    const authorizedDeans = {
+      "decano@lovels.com": {
+        password: "DecanoLovels123",
+        name: "Decano Principal"
+      }
+    };
+    
+    function login() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      
+      if (authorizedDeans[email] && authorizedDeans[email].password === password) {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('admin-panel').classList.add('admin-visible');
+        document.getElementById('user-role').style.display = 'block';
+        document.getElementById('user-role').textContent = 'Decano: ' + authorizedDeans[email].name;
+        
+        sessionStorage.setItem('deanLoggedIn', 'true');
+        sessionStorage.setItem('deanName', authorizedDeans[email].name);
+        
+        // Cargar datos para el panel de decano
+        if (window.loadAdminData) {
+          window.loadAdminData();
+        }
+      } else {
+        alert('Credenciales incorrectas. Solo los decanos pueden acceder.');
+      }
+    }
+    
+    function logout() {
+      sessionStorage.removeItem('deanLoggedIn');
+      sessionStorage.removeItem('deanName');
+      location.reload();
+    }
+    
+    function checkLogin() {
+      if (sessionStorage.getItem('deanLoggedIn') === 'true') {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('admin-panel').classList.add('admin-visible');
+        document.getElementById('user-role').style.display = 'block';
+        document.getElementById('user-role').textContent = 'Decano: ' + sessionStorage.getItem('deanName');
+      }
+    }
+    
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip-copied';
-        tooltip.textContent = '¡ID copiado al portapapeles!';
+        tooltip.textContent = '¡ID copiado!';
         document.body.appendChild(tooltip);
-        
-        setTimeout(() => {
-          tooltip.remove();
-        }, 2000);
+        setTimeout(() => tooltip.remove(), 2000);
       });
     }
-
-    // Validar que el ID solo contenga números
-    document.getElementById('idff').addEventListener('input', function(e) {
-      this.value = this.value.replace(/\D/g, '');
-    });
-
-    // Cambiar entre pestañas
-    function switchTab(tabId) {
-      // Ocultar todos los contenidos de pestañas
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      checkLogin();
+      
+      // Validar que el ID solo contenga números
+      document.getElementById('idff').addEventListener('input', function(e) {
+        this.value = this.value.replace(/\D/g, '');
       });
       
-      // Desactivar todas las pestañas
-      document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Activar la pestaña seleccionada
-      document.getElementById(`${tabId}-tab`).classList.add('active');
-      event.currentTarget.classList.add('active');
-    }
-
-    // Mostrar día actual en el horario de guerra
-    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const today = new Date().getDay();
-    document.querySelectorAll('.war-day').forEach((day, index) => {
-      if (index === today) {
-        day.classList.add('today');
+      // Cargar escuadras para registro
+      if (window.loadSquadsForRegistration) {
+        window.loadSquadsForRegistration();
       }
     });
+    
+    // Hacer funciones accesibles globalmente
+    window.login = login;
+    window.logout = logout;
+    window.copyToClipboard = copyToClipboard;
   </script>
 </body>
 </html>

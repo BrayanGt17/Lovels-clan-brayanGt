@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Registro de Miembros</title>
+  <title>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Gestión de Clan</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <style>
     :root {
@@ -14,6 +14,8 @@
       --light: #f8f9fa;
       --gray: #6c757d;
       --success: #4cc9f0;
+      --danger: #ef233c;
+      --warning: #f4a261;
       --border-radius: 12px;
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       --transition: all 0.3s ease;
@@ -32,19 +34,16 @@
       line-height: 1.6;
       padding: 20px;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
     
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
       overflow: hidden;
-      margin: 20px 0;
+      margin: 0 auto;
     }
     
     header {
@@ -86,55 +85,127 @@
       z-index: 1;
     }
     
-    .clan-info {
+    .clan-stats {
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 25px;
       flex-wrap: wrap;
+      margin-top: 20px;
       position: relative;
       z-index: 1;
     }
     
-    .clan-id, .clan-level {
+    .stat-box {
       background: rgba(255, 255, 255, 0.15);
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-size: 0.9rem;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
       display: flex;
       align-items: center;
-      gap: 8px;
-      cursor: pointer;
+      gap: 10px;
       transition: var(--transition);
     }
     
-    .clan-id:hover, .clan-level:hover {
+    .stat-box.clickable {
+      cursor: pointer;
+    }
+    
+    .stat-box.clickable:hover {
       background: rgba(255, 255, 255, 0.25);
     }
     
-    .clan-id i, .clan-level i {
-      font-size: 0.8rem;
+    .stat-icon {
+      font-size: 1.2rem;
     }
     
-    .tooltip {
-      position: absolute;
-      background: var(--dark);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 5px;
-      font-size: 0.8rem;
-      top: -35px;
-      opacity: 0;
-      transition: var(--transition);
-      pointer-events: none;
+    .stat-value {
+      font-weight: 600;
     }
     
-    .clan-id:hover .tooltip,
-    .clan-level:hover .tooltip {
-      opacity: 1;
+    .stat-label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    
+    .war-schedule {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+      text-align: left;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .war-schedule h3 {
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+    }
+    
+    .war-days {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    
+    .war-day {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      text-align: center;
+      flex: 1;
+    }
+    
+    .war-day.active {
+      background: var(--warning);
+      color: var(--dark);
+      font-weight: 600;
+    }
+    
+    .war-time {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      text-align: center;
     }
     
     main {
       padding: 30px;
+    }
+    
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e9ecef;
+      margin-bottom: 25px;
+    }
+    
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 3px solid transparent;
+      transition: var(--transition);
+    }
+    
+    .tab.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .tab:hover:not(.active) {
+      background: #f8f9fa;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
     
     form {
@@ -221,7 +292,7 @@
       margin-top: 30px;
     }
     
-    .members-section h2 {
+    .section-title {
       font-size: 1.5rem;
       margin-bottom: 20px;
       color: var(--primary);
@@ -239,43 +310,76 @@
     
     .escuadra-group {
       margin-bottom: 30px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+    }
+    
+    .escuadra-header {
+      background-color: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
     .escuadra-title {
-      background-color: var(--primary);
-      color: white;
-      padding: 12px 20px;
-      border-radius: var(--border-radius);
-      margin-bottom: 15px;
       font-size: 1.1rem;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .escuadra-leader {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
     
     .miembros-list {
       list-style: none;
+      padding: 15px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 15px;
     }
     
     .miembro-item {
-      background: white;
-      padding: 18px;
-      border-radius: var(--border-radius);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      background: var(--light);
+      padding: 15px;
+      border-radius: 8px;
       transition: var(--transition);
+      border-left: 3px solid var(--primary);
     }
     
-    .miembro-item:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    .miembro-item.lider {
+      border-left-color: var(--warning);
+      background: rgba(244, 162, 97, 0.1);
     }
     
     .miembro-nombre {
       font-weight: 600;
       color: var(--dark);
       margin-bottom: 8px;
-      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .miembro-nombre .lider-badge {
+      background: var(--warning);
+      color: var(--dark);
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
     }
     
     .miembro-detail {
@@ -300,6 +404,26 @@
       color: var(--gray);
     }
     
+    .tooltip-copied {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 5px;
+      z-index: 1000;
+      animation: fadeInOut 2s ease-out;
+      pointer-events: none;
+    }
+    
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(10px); }
+      20% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+    
     @media (max-width: 768px) {
       body {
         padding: 10px;
@@ -315,6 +439,23 @@
       
       h1 {
         font-size: 1.8rem;
+      }
+      
+      .clan-stats {
+        gap: 10px;
+      }
+      
+      .stat-box {
+        padding: 10px 15px;
+      }
+      
+      .war-days {
+        flex-wrap: wrap;
+      }
+      
+      .war-day {
+        flex: 1 0 40%;
+        margin-bottom: 5px;
       }
       
       main {
@@ -334,65 +475,138 @@
 <body>
   <div class="container">
     <header>
-      <h1>Registro - ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ</h1>
-      <div class="clan-info">
-        <div class="clan-id" onclick="copyToClipboard('2005567140')">
-          <i class="fas fa-copy"></i>
-          <span>ID: 2005567140</span>
-          <span class="tooltip">Click para copiar</span>
+      <h1>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ - Free Fire</h1>
+      
+      <div class="clan-stats">
+        <div class="stat-box clickable" onclick="copyToClipboard('2005567140')">
+          <i class="fas fa-id-card stat-icon"></i>
+          <div>
+            <div class="stat-value">2005567140</div>
+            <div class="stat-label">ID del Clan</div>
+          </div>
         </div>
-        <div class="clan-level">
-          <i class="fas fa-level-up-alt"></i>
-          <span>Nivel 7</span>
+        
+        <div class="stat-box">
+          <i class="fas fa-users stat-icon"></i>
+          <div>
+            <div class="stat-value">55</div>
+            <div class="stat-label">Miembros</div>
+          </div>
+        </div>
+        
+        <div class="stat-box">
+          <i class="fas fa-level-up-alt stat-icon"></i>
+          <div>
+            <div class="stat-value">7</div>
+            <div class="stat-label">Nivel</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="war-schedule">
+        <h3><i class="fas fa-calendar-alt"></i> Horario de Guerra de Clanes</h3>
+        <div class="war-days">
+          <div class="war-day">Lunes</div>
+          <div class="war-day">Martes</div>
+          <div class="war-day">Miércoles</div>
+          <div class="war-day active">Jueves</div>
+          <div class="war-day">Viernes</div>
+          <div class="war-day active">Sábado</div>
+          <div class="war-day active">Domingo</div>
+        </div>
+        <div class="war-time">
+          <i class="fas fa-clock"></i> 6:00 PM - 10:00 PM (Hora México)
         </div>
       </div>
     </header>
 
     <main>
-      <form id="registroForm">
-        <h2><i class="fas fa-user-edit"></i> Registro de Miembros</h2>
-        
-        <div class="form-group">
-          <input type="text" id="nombre" placeholder="Nombre en Free Fire" required />
-        </div>
-        
-        <div class="form-group">
-          <input type="text" id="idff" placeholder="ID de Free Fire (solo números)" pattern="\d*" inputmode="numeric" required />
-        </div>
-        
-        <div class="form-group">
-          <input type="tel" id="telefono" placeholder="Número de teléfono" required />
-        </div>
-        
-        <div class="form-group">
-          <select id="escuadra" required>
-            <option value="">Selecciona una escuadra</option>
-            <option value="Escuadra 1">Escuadra 1</option>
-            <option value="Escuadra 2">Escuadra 2</option>
-            <option value="Escuadra 3">Escuadra 3</option>
-            <option value="Escuadra 4">Escuadra 4</option>
-            <option value="Escuadra 5">Escuadra 5</option>
-            <option value="Escuadra 6">Escuadra 6</option>
-            <option value="Escuadra 7">Escuadra 7</option>
-            <option value="Escuadra 8">Escuadra 8</option>
-            <option value="Escuadra 9">Escuadra 9</option>
-            <option value="Escuadra 10">Escuadra 10</option>
-            <option value="Escuadra 11">Escuadra 11</option>
-            <option value="Escuadra 12">Escuadra 12</option>
-            <option value="Escuadra 13">Escuadra 13</option>
-            <option value="Escuadra 14">Escuadra 14</option>
-          </select>
-        </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('registro')">Registro</div>
+        <div class="tab" onclick="switchTab('miembros')">Miembros</div>
+        <div class="tab" onclick="switchTab('escuadras')">Escuadras</div>
+      </div>
+      
+      <div id="registro-tab" class="tab-content active">
+        <form id="registroForm">
+          <h2><i class="fas fa-user-edit"></i> Registro de Miembros</h2>
+          
+          <div class="form-group">
+            <input type="text" id="nombre" placeholder="Nombre en Free Fire" required />
+          </div>
+          
+          <div class="form-group">
+            <input type="text" id="idff" placeholder="ID de Free Fire (solo números)" pattern="\d*" inputmode="numeric" required />
+          </div>
+          
+          <div class="form-group">
+            <input type="tel" id="telefono" placeholder="Número de teléfono" required />
+          </div>
+          
+          <div class="form-group">
+            <select id="escuadra" required>
+              <option value="">Selecciona una escuadra</option>
+              <option value="Escuadra 1">Escuadra 1 (Líder: CarlosFF)</option>
+              <option value="Escuadra 2">Escuadra 2 (Líder: MariaGG)</option>
+              <option value="Escuadra 3">Escuadra 3 (Líder: JuanKiller)</option>
+              <option value="Escuadra 4">Escuadra 4 (Líder: AnaPro)</option>
+              <option value="Escuadra 5">Escuadra 5 (Líder: LuisShot)</option>
+              <option value="Escuadra 6">Escuadra 6 (Líder: PedroSniper)</option>
+              <option value="Escuadra 7">Escuadra 7 (Líder: SofiaMVP)</option>
+            </select>
+          </div>
 
-        <button type="submit">
-          <i class="fas fa-user-plus"></i> Registrar Miembro
-        </button>
-      </form>
-
-      <section class="members-section">
-        <h2><i class="fas fa-users"></i> Miembros Registrados</h2>
-        <div id="listaMiembros"></div>
-      </section>
+          <button type="submit">
+            <i class="fas fa-user-plus"></i> Registrar Miembro
+          </button>
+        </form>
+      </div>
+      
+      <div id="miembros-tab" class="tab-content">
+        <section class="members-section">
+          <h2 class="section-title"><i class="fas fa-users"></i> Todos los Miembros (55)</h2>
+          <div id="listaMiembros">
+            <!-- Los miembros se cargarán aquí dinámicamente -->
+            <div class="loading">
+              <i class="fas fa-spinner fa-spin"></i> Cargando miembros...
+            </div>
+          </div>
+        </section>
+      </div>
+      
+      <div id="escuadras-tab" class="tab-content">
+        <section class="members-section">
+          <h2 class="section-title"><i class="fas fa-users"></i> Estructura de Escuadras</h2>
+          
+          <div class="escuadra-group">
+            <div class="escuadra-header">
+              <div class="escuadra-title">
+                <i class="fas fa-users"></i> Escuadra 1
+              </div>
+              <div class="escuadra-leader">
+                <i class="fas fa-crown"></i> Líder: CarlosFF
+              </div>
+            </div>
+            <ul class="miembros-list">
+              <li class="miembro-item lider">
+                <div class="miembro-nombre">
+                  CarlosFF <span class="lider-badge">LÍDER</span>
+                </div>
+                <div class="miembro-detail">
+                  <i class="fas fa-id-card"></i> ID: 123456789
+                </div>
+                <div class="miembro-detail">
+                  <i class="fas fa-phone"></i> 📞 (555) 123-4567
+                </div>
+              </li>
+              <!-- Más miembros de la escuadra... -->
+            </ul>
+          </div>
+          
+          <!-- Más escuadras... -->
+          
+        </section>
+      </div>
     </main>
   </div>
 
@@ -403,16 +617,7 @@
       navigator.clipboard.writeText(text).then(() => {
         const tooltip = document.createElement('div');
         tooltip.className = 'tooltip-copied';
-        tooltip.textContent = '¡Copiado!';
-        tooltip.style.position = 'fixed';
-        tooltip.style.bottom = '20px';
-        tooltip.style.right = '20px';
-        tooltip.style.background = 'var(--primary)';
-        tooltip.style.color = 'white';
-        tooltip.style.padding = '10px 15px';
-        tooltip.style.borderRadius = '5px';
-        tooltip.style.zIndex = '1000';
-        tooltip.style.animation = 'fadeInOut 2s ease-out';
+        tooltip.textContent = '¡ID copiado al portapapeles!';
         document.body.appendChild(tooltip);
         
         setTimeout(() => {
@@ -426,17 +631,31 @@
       this.value = this.value.replace(/\D/g, '');
     });
 
-    // Añadir animación para el tooltip de copiado
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes fadeInOut {
-        0% { opacity: 0; transform: translateY(10px); }
-        20% { opacity: 1; transform: translateY(0); }
-        80% { opacity: 1; transform: translateY(0); }
-        100% { opacity: 0; transform: translateY(-10px); }
+    // Cambiar entre pestañas
+    function switchTab(tabId) {
+      // Ocultar todos los contenidos de pestañas
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Desactivar todas las pestañas
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Activar la pestaña seleccionada
+      document.getElementById(`${tabId}-tab`).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Mostrar día actual en el horario de guerra
+    const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const today = new Date().getDay();
+    document.querySelectorAll('.war-day').forEach((day, index) => {
+      if (index === today) {
+        day.classList.add('today');
       }
-    `;
-    document.head.appendChild(style);
+    });
   </script>
 </body>
 </html>

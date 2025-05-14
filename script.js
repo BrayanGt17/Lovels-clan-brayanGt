@@ -1,20 +1,25 @@
-// script.js
 import { db } from './firebase-config.js';
 import {
-  collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc
+  collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
 // Elementos del DOM
 const form = document.getElementById('registroForm');
 const lista = document.getElementById('listaMiembros');
-const loadingIndicator = document.createElement('div');
-loadingIndicator.className = 'loading';
-loadingIndicator.innerHTML = '<div class="spinner"></div><p>Cargando miembros...</p>';
 
-// Configuración inicial
-let miembrosData = [];
+// Función para mostrar alertas
+function showAlert(message, type = 'success') {
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  document.body.appendChild(alert);
+  
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
+}
 
-// Evento de envío del formulario
+// Registrar nuevo miembro
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -23,161 +28,99 @@ form.addEventListener('submit', async (e) => {
   const telefono = document.getElementById('telefono').value.trim().replace(/\D/g, '');
   const escuadra = document.getElementById('escuadra').value;
 
-  // Validación mejorada
   if (!nombre || !idff || !telefono || !escuadra) {
-    showAlert('Por favor completa todos los campos', 'error');
-    return;
-  }
-
-  if (!/^\d{10,15}$/.test(telefono)) {
-    showAlert('El teléfono debe contener entre 10 y 15 dígitos', 'error');
-    return;
-  }
-
-  if (!confirm('¿Estás seguro de registrar este miembro?')) {
+    showAlert('Completa todos los campos', 'error');
     return;
   }
 
   try {
-    form.classList.add('submitting');
-    
-    const memberData = {
+    const button = form.querySelector('button');
+    button.disabled = true;
+    button.textContent = 'Registrando...';
+
+    await addDoc(collection(db, 'miembros'), {
       nombre,
       idff,
       telefono,
       escuadra,
       timestamp: new Date()
-    };
+    });
 
-    if (form.dataset.editingId) {
-      await updateDoc(doc(db, 'miembros', form.dataset.editingId), memberData);
-      showAlert('¡Miembro actualizado con éxito!', 'success');
-      form.dataset.editingId = '';
-      form.querySelector('button[type="submit"]').textContent = 'Registrar Miembro';
-    } else {
-      // CORRECCIÓN: Paréntesis correctos en addDoc
-      await addDoc(collection(db, 'miembros'), memberData);
-      showAlert('¡Miembro registrado con éxito!', 'success');
-    }
-
+    showAlert('✅ Miembro registrado correctamente');
     form.reset();
     await mostrarMiembros();
   } catch (error) {
-    console.error("Error al registrar:", error);
-    showAlert(`Error: ${error.message}`, 'error');
+    console.error("Error:", error);
+    showAlert('❌ Error al registrar: ' + error.message, 'error');
   } finally {
-    form.classList.remove('submitting');
+    const button = form.querySelector('button');
+    button.disabled = false;
+    button.textContent = 'Registrar';
   }
 });
 
-// Función mejorada para mostrar miembros
+// Mostrar miembros agrupados por escuadra
 async function mostrarMiembros() {
   try {
-    lista.innerHTML = '';
-    lista.appendChild(loadingIndicator);
+    lista.innerHTML = '<p>Cargando miembros...</p>';
     
-    // Consulta con manejo de errores mejorado
-    const q = query(collection(db, "miembros"), orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(collection(db, 'miembros'));
+    const miembrosPorEscuadra = {};
     
-    if (querySnapshot.empty) {
-      lista.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
-      return;
-    }
-    
-    miembrosData = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: doc.data().timestamp?.toDate() || new Date()
-    }));
-    
-    renderMiembrosList(miembrosData);
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      if (!miembrosPorEscuadra[data.escuadra]) {
+        miembrosPorEscuadra[data.escuadra] = [];
+      }
+      miembrosPorEscuadra[data.escuadra].push(data);
+    });
+
+    // Ordenar escuadras numéricamente
+    const escuadrasOrdenadas = Object.keys(miembrosPorEscuadra).sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, ''));
+      const numB = parseInt(b.replace(/\D/g, ''));
+      return numA - numB;
+    });
+
+    let html = '';
+    escuadrasOrdenadas.forEach(escuadra => {
+      html += `<div class="escuadra-group">`;
+      html += `<h3 class="escuadra-title">${escuadra}</h3>`;
+      html += `<ul class="miembros-list">`;
+      
+      // Ordenar miembros por nombre dentro de cada escuadra
+      miembrosPorEscuadra[escuadra].sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .forEach(miembro => {
+          html += `
+            <li class="miembro-item">
+              <span class="miembro-nombre">${miembro.nombre}</span>
+              <span class="miembro-id">ID: ${miembro.idff}</span>
+              <span class="miembro-telefono">📞 ${formatearTelefono(miembro.telefono)}</span>
+            </li>
+          `;
+        });
+      
+      html += `</ul></div>`;
+    });
+
+    lista.innerHTML = html || '<p>No hay miembros registrados aún.</p>';
   } catch (error) {
     console.error("Error al cargar miembros:", error);
     lista.innerHTML = `
       <div class="error">
-        <p>Error al cargar miembros: ${error.message}</p>
+        <p>Error al cargar miembros</p>
         <button onclick="mostrarMiembros()">Reintentar</button>
       </div>
     `;
   }
 }
 
-// Renderizar lista de miembros (versión simplificada)
-function renderMiembrosList(miembros) {
-  // Ordenar por escuadra primero
-  miembros.sort((a, b) => a.escuadra.localeCompare(b.escuadra) || a.nombre.localeCompare(b.nombre));
-  
-  let currentEscuadra = '';
-  let html = '';
-
-  miembros.forEach(miembro => {
-    // Mostrar encabezado de escuadra cuando cambia
-    if (miembro.escuadra !== currentEscuadra) {
-      currentEscuadra = miembro.escuadra;
-      html += `<h3 class="escuadra-title">${currentEscuadra}</h3><ul class="miembros-list">`;
-    }
-    
-    html += `
-      <li class="miembro-item">
-        <div class="miembro-info">
-          <strong>${miembro.nombre}</strong>
-          <div class="miembro-details">
-            <span>ID: ${miembro.idff}</span>
-            <span>📞 ${formatTelefono(miembro.telefono)}</span>
-          </div>
-        </div>
-      </li>
-    `;
-  });
-
-  // Cerrar el último ul si hay miembros
-  if (miembros.length > 0) {
-    html += '</ul>';
-  }
-
-  lista.innerHTML = html || '<div class="empty">No hay miembros registrados.</div>';
+// Formatear número de teléfono
+function formatearTelefono(numero) {
+  if (!numero) return 'N/A';
+  const soloNumeros = numero.toString().replace(/\D/g, '');
+  return soloNumeros.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
 }
 
-// Función mejorada para mostrar alertas
-function showAlert(message, type) {
-  // Eliminar alertas anteriores
-  const existingAlerts = document.querySelectorAll('.alert');
-  existingAlerts.forEach(alert => alert.remove());
-  
-  const alert = document.createElement('div');
-  alert.className = `alert alert-${type}`;
-  alert.innerHTML = `
-    <p>${message}</p>
-    <button onclick="this.parentElement.remove()">×</button>
-  `;
-  
-  document.body.appendChild(alert);
-  
-  // Auto-eliminación después de 5 segundos
-  setTimeout(() => {
-    alert.classList.add('fade-out');
-    setTimeout(() => alert.remove(), 500);
-  }, 5000);
-}
-
-// Formatear teléfono
-function formatTelefono(num) {
-  if (!num) return 'N/A';
-  const cleaned = num.toString().replace(/\D/g, '');
-  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : cleaned;
-}
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', () => {
-  // Configurar el campo de teléfono
-  const telefonoInput = document.getElementById('telefono');
-  telefonoInput.addEventListener('input', function(e) {
-    const value = e.target.value.replace(/\D/g, '');
-    e.target.value = formatTelefono(value);
-  });
-
-  // Mostrar miembros al cargar
-  mostrarMiembros();
-});
+// Inicializar
+document.addEventListener('DOMContentLoaded', mostrarMiembros);

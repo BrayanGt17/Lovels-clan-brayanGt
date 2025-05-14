@@ -39,7 +39,6 @@ form.addEventListener('submit', async (e) => {
   }
 
   try {
-    // Mostrar carga durante la operación
     form.classList.add('submitting');
     
     const memberData = {
@@ -70,13 +69,13 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
-// Función para mostrar miembros con manejo de errores de índice
+// Función para mostrar miembros con manejo de errores mejorado
 async function mostrarMiembros() {
   try {
     lista.innerHTML = '';
     lista.appendChild(loadingIndicator);
     
-    // Intenta primero con la consulta compuesta
+    // Primero intenta con la consulta compuesta
     try {
       const q = query(
         collection(db, "miembros"), 
@@ -103,7 +102,8 @@ async function mostrarMiembros() {
     lista.innerHTML = `
       <div class="error">
         <p>Error al cargar miembros: ${error.message}</p>
-        <button onclick="location.reload()">Reintentar</button>
+        <p>Por favor recarga la página o intenta nuevamente más tarde.</p>
+        <button onclick="window.location.reload()">Reintentar</button>
       </div>
     `;
   }
@@ -112,21 +112,23 @@ async function mostrarMiembros() {
 // Función auxiliar para cargar miembros
 async function loadMembers(query) {
   const miembrosSnap = await getDocs(query);
+  
+  if (miembrosSnap.empty) {
+    lista.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
+    return;
+  }
+  
   miembrosData = miembrosSnap.docs.map(doc => ({ 
     id: doc.id, 
     ...doc.data(),
     timestamp: doc.data().timestamp?.toDate() || new Date()
   }));
   
-  if (miembrosData.length === 0) {
-    lista.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
-    return;
-  }
-  
   const escuadras = groupByEscuadra(miembrosData);
   renderMiembrosList(escuadras);
 }
 
+// Resto del código permanece igual...
 // Agrupar por escuadra
 function groupByEscuadra(miembros) {
   return miembros.reduce((acc, miembro) => {

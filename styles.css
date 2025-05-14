@@ -1,54 +1,198 @@
+/* styles.css */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 2rem;
   background-color: #f0f2f5;
   color: #333;
+  line-height: 1.6;
 }
 
 h1, h2 {
   text-align: center;
+  color: #2c3e50;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
 }
 
 form {
-  max-width: 400px;
-  margin: 0 auto 2rem;
+  max-width: 500px;
+  margin: 0 auto 3rem;
   background: white;
-  padding: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 input, select, button {
   width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
 }
 
 button {
-  background-color: #28a745;
+  background-color: #2ecc71;
   color: white;
   border: none;
   cursor: pointer;
+  font-weight: bold;
+  margin-top: 20px;
+  padding: 14px;
+  transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #218838;
+  background-color: #27ae60;
 }
 
-#listaMiembros h3 {
-  margin-top: 1rem;
+#listaMiembros {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-ul {
+.escuadra-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.escuadra-title {
+  color: #3498db;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.miembros-list {
   list-style: none;
   padding-left: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
 }
 
-li {
-  background: white;
-  margin-bottom: 5px;
-  padding: 8px;
+.miembro-item {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.miembro-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.miembro-info {
+  flex: 1;
+}
+
+.miembro-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-edit, .btn-delete {
+  width: auto;
+  padding: 8px 12px;
+  margin-top: 0;
   border-radius: 6px;
+  font-size: 14px;
+}
+
+.btn-edit {
+  background-color: #3498db;
+}
+
+.btn-edit:hover {
+  background-color: #2980b9;
+}
+
+.btn-delete {
+  background-color: #e74c3c;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+  background: white;
+  border-radius: 12px;
+}
+
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+  background-color: #2ecc71;
+}
+
+.alert-error {
+  background-color: #e74c3c;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.fade-out {
+  animation: fadeOut 0.5s ease-in forwards;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+.submitting {
+  position: relative;
+  opacity: 0.7;
+}
+
+.submitting::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.7);
+  z-index: 10;
+  border-radius: 12px;
 }

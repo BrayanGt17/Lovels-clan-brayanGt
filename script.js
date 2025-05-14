@@ -70,28 +70,61 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
-// Mostrar miembros con mejoras
+// Función para mostrar miembros con manejo de errores de índice
 async function mostrarMiembros() {
   try {
     lista.innerHTML = '';
     lista.appendChild(loadingIndicator);
     
-    const q = query(collection(db, "miembros"), orderBy("escuadra"), orderBy("nombre"));
-    const miembrosSnap = await getDocs(q);
-    miembrosData = miembrosSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    if (miembrosData.length === 0) {
-      lista.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
-      return;
+    // Intenta primero con la consulta compuesta
+    try {
+      const q = query(
+        collection(db, "miembros"), 
+        orderBy("escuadra"), 
+        orderBy("nombre")
+      );
+      await loadMembers(q);
+    } catch (error) {
+      if (error.code === 'failed-precondition') {
+        console.warn("Índice compuesto no disponible, usando orden simple");
+        // Fallback a orden simple si el índice no está listo
+        const q = query(
+          collection(db, "miembros"), 
+          orderBy("escuadra")
+        );
+        await loadMembers(q);
+        showAlert('Los datos se cargaron con ordenación básica. La ordenación completa estará disponible pronto.', 'info');
+      } else {
+        throw error;
+      }
     }
-    
-    const escuadras = groupByEscuadra(miembrosData);
-    renderMiembrosList(escuadras);
-    
   } catch (error) {
     console.error("Error al cargar miembros:", error);
-    lista.innerHTML = `<div class="error">Error al cargar miembros: ${error.message}</div>`;
+    lista.innerHTML = `
+      <div class="error">
+        <p>Error al cargar miembros: ${error.message}</p>
+        <button onclick="location.reload()">Reintentar</button>
+      </div>
+    `;
   }
+}
+
+// Función auxiliar para cargar miembros
+async function loadMembers(query) {
+  const miembrosSnap = await getDocs(query);
+  miembrosData = miembrosSnap.docs.map(doc => ({ 
+    id: doc.id, 
+    ...doc.data(),
+    timestamp: doc.data().timestamp?.toDate() || new Date()
+  }));
+  
+  if (miembrosData.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
+    return;
+  }
+  
+  const escuadras = groupByEscuadra(miembrosData);
+  renderMiembrosList(escuadras);
 }
 
 // Agrupar por escuadra
@@ -117,11 +150,15 @@ function renderMiembrosList(escuadras) {
   });
 
   escuadrasOrdenadas.forEach(nombreEscuadra => {
+    // Ordenar miembros por nombre dentro de cada escuadra
+    const miembrosOrdenados = escuadras[nombreEscuadra].sort((a, b) => 
+      a.nombre.localeCompare(b.nombre));
+    
     html += `
       <div class="escuadra-container">
         <h3 class="escuadra-title">${nombreEscuadra}</h3>
         <ul class="miembros-list">
-          ${escuadras[nombreEscuadra].map(m => `
+          ${miembrosOrdenados.map(m => `
             <li class="miembro-item" data-id="${m.id}">
               <div class="miembro-info">
                 <strong>${m.nombre}</strong>
@@ -155,9 +192,10 @@ function renderMiembrosList(escuadras) {
 
 // Formatear teléfono
 function formatTelefono(num) {
-  const cleaned = num.replace(/\D/g, '');
+  if (!num) return '';
+  const cleaned = num.toString().replace(/\D/g, '');
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : num;
+  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : cleaned;
 }
 
 // Mostrar alertas estilizadas
@@ -187,7 +225,9 @@ async function handleEdit(miembroId) {
   
   // Cambiar comportamiento del formulario para actualizar
   form.dataset.editingId = miembroId;
-  form.querySelector('button[type="submit"]').textContent = 'Actualizar Miembro';
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.textContent = 'Actualizar Miembro';
+  submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Miembro';
   
   // Scroll al formulario
   form.scrollIntoView({ behavior: 'smooth' });
@@ -209,12 +249,13 @@ async function handleDelete(miembroId) {
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => {
-  mostrarMiembros();
-  
-  // Mejorar entrada de teléfono
+  // Configurar el campo de teléfono
   const telefonoInput = document.getElementById('telefono');
   telefonoInput.addEventListener('input', function(e) {
     const value = e.target.value.replace(/\D/g, '');
     e.target.value = formatTelefono(value);
   });
+
+  // Cargar miembros iniciales
+  mostrarMiembros();
 });

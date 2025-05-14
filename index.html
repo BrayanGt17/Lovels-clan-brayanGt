@@ -545,8 +545,8 @@
           <div class="war-day active">Miércoles</div>
           <div class="war-day">Jueves</div>
           <div class="war-day">Viernes</div>
-          <div class="war-day">Sábado</div>
-          <div class="war-day">Domingo</div>
+          <div class="war-day active">Sábado</div>
+          <div class="war-day active">Domingo</div>
         </div>
         <div class="war-time">
           <i class="fas fa-clock"></i> 6:00 PM - 10:00 PM (Hora México)
@@ -616,9 +616,9 @@
       </div>
     </main>
   </div>
-  
+
   <script>
-    // Datos de ejemplo (en un caso real, estos vendrían de una base de datos)
+    // Datos (sin ejemplos precargados)
     let miembros = [];
     let escuadras = [];
     
@@ -670,9 +670,9 @@
       const select = document.getElementById('escuadra');
       select.innerHTML = '<option value="">Selecciona una escuadra</option>';
       
-      // Si no hay escuadras, agregamos 4 por defecto
+      // Crear 14 escuadras numeradas si no existen
       if (escuadras.length === 0) {
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 14; i++) {
           escuadras.push({
             nombre: `Escuadra ${i}`,
             lider: null
@@ -895,66 +895,9 @@
       alert('Miembro registrado exitosamente!');
     });
     
-    // Inicializar con datos de ejemplo
-    function inicializarDatos() {
-      // Crear 4 escuadras numeradas
-      for (let i = 1; i <= 4; i++) {
-        escuadras.push({
-          nombre: `Escuadra ${i}`,
-          lider: null
-        });
-      }
-      
-      // Datos de ejemplo para miembros
-      miembros = [
-        {
-          nombre: 'CarlosFF',
-          idff: '123456789',
-          telefono: '(555) 123-4567',
-          escuadra: 'Escuadra 1',
-          esLider: true
-        },
-        {
-          nombre: 'MariaGG',
-          idff: '987654321',
-          telefono: '(555) 765-4321',
-          escuadra: 'Escuadra 2',
-          esLider: true
-        },
-        {
-          nombre: 'JuanKiller',
-          idff: '456789123',
-          telefono: '(555) 456-7890',
-          escuadra: 'Escuadra 1',
-          esLider: false
-        },
-        {
-          nombre: 'AnaPro',
-          idff: '321654987',
-          telefono: '(555) 321-6549',
-          escuadra: 'Escuadra 3',
-          esLider: true
-        },
-        {
-          nombre: 'LuisShot',
-          idff: '789123456',
-          telefono: '(555) 789-1234',
-          escuadra: 'Escuadra 4',
-          esLider: true
-        }
-      ];
-      
-      // Actualizar el líder en las escuadras
-      miembros.forEach(miembro => {
-        if (miembro.esLider) {
-          const escuadra = escuadras.find(e => e.nombre === miembro.escuadra);
-          if (escuadra) {
-            escuadra.lider = miembro.nombre;
-          }
-        }
-      });
-      
-      // Actualizar los días activos en el horario de guerra (Miércoles, Sábado y Domingo)
+    // Inicializar cuando se carga la página
+    window.addEventListener('DOMContentLoaded', function() {
+      // Configurar días activos en el horario de guerra (Miércoles, Sábado y Domingo)
       document.querySelectorAll('.war-day').forEach((day, index) => {
         // 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
         if (index === 3 || index === 6 || index === 0) { // Miércoles, Sábado y Domingo
@@ -964,13 +907,9 @@
         }
       });
       
+      // Inicializar escuadras y select
       actualizarSelectEscuadras();
-      actualizarListaMiembros();
-      actualizarEstructuraEscuadras();
-    }
-    
-    // Inicializar cuando se carga la página
-    window.addEventListener('DOMContentLoaded', inicializarDatos);
+    });
   </script>
 </body>
 </html>

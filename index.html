@@ -10,6 +10,7 @@
 </head>
 <body>
   <h1>ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ</h1>
+  <div class="id-clan">ID del clan: 1234567890</div>
   <h2>Registro de Escuadras</h2>
 
   <form id="registroForm">
@@ -45,10 +46,10 @@
     window.intlTelInput(input, {
       initialCountry: "auto",
       geoIpLookup: function (callback) {
-        fetch("https://ipinfo.io/json?token=YOUR_TOKEN") // Puedes reemplazar con "ipapi.co/json"
+        fetch("https://ipapi.co/json")
           .then((resp) => resp.json())
           .then((resp) => callback(resp.country))
-          .catch(() => callback("us"));
+          .catch(() => callback("gt"));
       },
       utilsScript: "https://unpkg.com/intl-tel-input@17.0.8/build/js/utils.js",
     });

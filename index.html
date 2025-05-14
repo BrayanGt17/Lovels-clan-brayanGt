@@ -86,15 +86,51 @@
       z-index: 1;
     }
     
-    .clan-id {
-      font-size: 1rem;
-      opacity: 0.9;
+    .clan-info {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
       position: relative;
       z-index: 1;
     }
     
-    .clan-id strong {
-      font-weight: 600;
+    .clan-id, .clan-level {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .clan-id:hover, .clan-level:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    
+    .clan-id i, .clan-level i {
+      font-size: 0.8rem;
+    }
+    
+    .tooltip {
+      position: absolute;
+      background: var(--dark);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      top: -35px;
+      opacity: 0;
+      transition: var(--transition);
+      pointer-events: none;
+    }
+    
+    .clan-id:hover .tooltip,
+    .clan-level:hover .tooltip {
+      opacity: 1;
     }
     
     main {
@@ -299,7 +335,17 @@
   <div class="container">
     <header>
       <h1>Registro - ᴛʜᴇ ʟᴏᴠᴇʟ'ꜱ</h1>
-      <p class="clan-id"><strong>ID del Clan:</strong> 123456789</p>
+      <div class="clan-info">
+        <div class="clan-id" onclick="copyToClipboard('2005567140')">
+          <i class="fas fa-copy"></i>
+          <span>ID: 2005567140</span>
+          <span class="tooltip">Click para copiar</span>
+        </div>
+        <div class="clan-level">
+          <i class="fas fa-level-up-alt"></i>
+          <span>Nivel 7</span>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -307,11 +353,11 @@
         <h2><i class="fas fa-user-edit"></i> Registro de Miembros</h2>
         
         <div class="form-group">
-          <input type="text" id="nombre" placeholder="Nombre en el clan" required />
+          <input type="text" id="nombre" placeholder="Nombre en Free Fire" required />
         </div>
         
         <div class="form-group">
-          <input type="text" id="idff" placeholder="ID de Free Fire" required />
+          <input type="text" id="idff" placeholder="ID de Free Fire (solo números)" pattern="\d*" inputmode="numeric" required />
         </div>
         
         <div class="form-group">
@@ -351,5 +397,46 @@
   </div>
 
   <script type="module" src="script.js"></script>
+  <script>
+    // Función para copiar el ID del clan
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'tooltip-copied';
+        tooltip.textContent = '¡Copiado!';
+        tooltip.style.position = 'fixed';
+        tooltip.style.bottom = '20px';
+        tooltip.style.right = '20px';
+        tooltip.style.background = 'var(--primary)';
+        tooltip.style.color = 'white';
+        tooltip.style.padding = '10px 15px';
+        tooltip.style.borderRadius = '5px';
+        tooltip.style.zIndex = '1000';
+        tooltip.style.animation = 'fadeInOut 2s ease-out';
+        document.body.appendChild(tooltip);
+        
+        setTimeout(() => {
+          tooltip.remove();
+        }, 2000);
+      });
+    }
+
+    // Validar que el ID solo contenga números
+    document.getElementById('idff').addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g, '');
+    });
+
+    // Añadir animación para el tooltip de copiado
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(10px); }
+        20% { opacity: 1; transform: translateY(0); }
+        80% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-10px); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 </body>
 </html>

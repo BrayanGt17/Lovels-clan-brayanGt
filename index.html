@@ -15,7 +15,7 @@
       --gray: #6c757d;
       --success: #4cc9f0;
       --danger: #ef233c;
-      --warning: #f4a261;
+      --warning: #f461bc;
       --border-radius: 12px;
       --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       --transition: all 0.3s ease;
@@ -898,9 +898,9 @@
     // Inicializar cuando se carga la página
     window.addEventListener('DOMContentLoaded', function() {
       // Configurar días activos en el horario de guerra (Miércoles, Sábado y Domingo)
-      document.querySelectorAll('.war-day').forEach((day, index) => {
+      document.querySelectorAll('.war-day active').forEach((day, index) => {
         // 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
-        if (index === 3 || index === 6 || index === 0) { // Miércoles, Sábado y Domingo
+        if (index === 5 || index === 2 || index === 0) { // Miércoles, Sábado y Domingo
           day.classList.add('active');
         } else {
           day.classList.remove('active');

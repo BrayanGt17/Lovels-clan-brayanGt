@@ -195,12 +195,16 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     if (anterior) anterior.esLider = false;
   }
 
-  // LÍDER AUTOMÁTICO: si hay 3 sin líder y el 4.º entra, se asigna como líder
-  if (!esLider && miembrosEnEscuadra.length === 3 && !escActual.lider) {
+  // Si NO se marcó como líder, verificar si debe ser líder automáticamente
+if (!esLider && !escActual.lider) {
+  const futurosMiembros = [...miembrosEnEscuadra, { nombre, escuadra }]; // simulamos agregar
+  if (futurosMiembros.length === 4) {
     esLider = true;
     escActual.lider = nombre;
-    alert(`ℹ️ ${nombre} ha sido asignado como líder automáticamente.`);
+    alert(`ℹ️ ${nombre} ha sido asignado como líder automáticamente (cuarto miembro sin líder).`);
   }
+}
+
 
   const nuevoMiembro = { nombre, idff, telefono, escuadra, esLider };
 

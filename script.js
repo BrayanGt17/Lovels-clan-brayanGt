@@ -90,8 +90,7 @@ function actualizarEstructuraEscuadras() {
         li.className = m.esLider ? 'miembro-item lider' : 'miembro-item';
         li.innerHTML = `
           <div class="miembro-nombre">${m.nombre} ${m.esLider ? '<span class="lider-badge">LÍDER</span>' : ''}</div>
-          <div class="miembro-detail"><i class="fas fa-id-card"></i> ID: ${m.idff}</div>
-          <div class="miembro-detail"><i class="fas fa-phone"></i> 📞 ${m.telefono}</div>
+          
         `;
         ul.appendChild(li);
       });

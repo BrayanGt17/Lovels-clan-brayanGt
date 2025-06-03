@@ -159,7 +159,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
   const idff = document.getElementById('idff').value.trim();
   const telefono = document.getElementById('telefono').value.trim();
   const escuadra = document.getElementById('escuadra').value;
-  const esLider = document.getElementById('esLider').checked;
+  let esLider = document.getElementById('esLider').checked;
 
   if (!nombre || !idff || !telefono || !escuadra) {
     alert("Completa todos los campos.");
@@ -170,39 +170,45 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     alert("Este ID ya está registrado.");
     return;
   }
-// Validar teléfono: debe comenzar con '+' y contener solo números (mínimo 8 dígitos)
-const telefonoRegex = /^\+\d{8,15}$/;
-if (!telefonoRegex.test(telefono)) {
-  alert('Por favor ingresa un número válido con código de país. Ej: +521234567890');
-  return;
-}
 
-  // Verificar líder duplicado
+  // Validar teléfono internacional
+  const telefonoRegex = /^\+\d{8,15}$/;
+  if (!telefonoRegex.test(telefono)) {
+    alert('Número inválido. Usa formato internacional. Ej: +521234567890');
+    return;
+  }
+
   const escActual = escuadras.find(e => e.nombre === escuadra);
-  if (esLider && escActual.lider) {
-    if (!confirm(`La ${escuadra} ya tiene líder: ${escActual.lider}. ¿Reemplazarlo?`)) {
-      return;
-    }
+  const miembrosEnEscuadra = miembros.filter(m => m.escuadra === escuadra);
 
-    // Quitar liderazgo al anterior
+  if (miembrosEnEscuadra.length >= 4) {
+    alert(`La ${escuadra} ya tiene 4 miembros.`);
+    return;
+  }
+
+  // Reemplazo de líder manual
+  if (esLider && escActual.lider) {
+    const reemplazar = confirm(`La ${escuadra} ya tiene líder: ${escActual.lider}. ¿Reemplazarlo?`);
+    if (!reemplazar) return;
+
     const anterior = miembros.find(m => m.escuadra === escuadra && m.nombre === escActual.lider);
     if (anterior) anterior.esLider = false;
   }
-// Validar si ya hay 4 miembros en la escuadra
-const miembrosEnEscuadra = miembros.filter(m => m.escuadra === escuadra);
-if (miembrosEnEscuadra.length >= 4) {
-  alert(`La ${escuadra} ya tiene 4 miembros. No se pueden agregar más.`);
-  return;
-}
+
+  // LÍDER AUTOMÁTICO: si hay 3 sin líder y el 4.º entra, se asigna como líder
+  if (!esLider && miembrosEnEscuadra.length === 3 && !escActual.lider) {
+    esLider = true;
+    escActual.lider = nombre;
+    alert(`ℹ️ ${nombre} ha sido asignado como líder automáticamente.`);
+  }
 
   const nuevoMiembro = { nombre, idff, telefono, escuadra, esLider };
 
   try {
     await addDoc(collection(db, 'miembros'), nuevoMiembro);
     miembros.push(nuevoMiembro);
-    if (esLider) {
-      escActual.lider = nombre;
-    }
+
+    if (esLider) escActual.lider = nombre;
 
     alert("✅ ¡Registrado!");
     e.target.reset();
@@ -215,6 +221,7 @@ if (miembrosEnEscuadra.length >= 4) {
   }
 });
 
+
 // Función para copiar ID
 window.copyToClipboard = function (text) {
   navigator.clipboard.writeText(text).then(() => {
@@ -225,15 +232,16 @@ window.copyToClipboard = function (text) {
     setTimeout(() => tooltip.remove(), 2000);
   });
 };
-// Solo permitir + y números en tiempo real
+// Solo permitir "+" y números en teléfono
 document.getElementById('telefono').addEventListener('input', function () {
   this.value = this.value.replace(/[^\d+]/g, '');
 });
 
-// Validar que solo se escriban números en el ID
+// Solo números en ID
 document.getElementById('idff').addEventListener('input', function () {
   this.value = this.value.replace(/\D/g, '');
 });
+
 
 // Cambiar pestañas
 window.switchTab = function (tabId) {

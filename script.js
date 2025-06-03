@@ -2,16 +2,28 @@ import { db } from './firebase-config.js';
 import {
   collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
-
+import { Timestamp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 // Variables locales
 let miembros = [];
 let escuadras = [];
 
-// Inicializar escuadras vacías
-function inicializarEscuadras() {
+async function inicializarEscuadras() {
   escuadras = [];
+
   for (let i = 1; i <= 14; i++) {
-    escuadras.push({ nombre: `Escuadra ${i}`, lider: null });
+    const nombreEscuadra = `Escuadra ${i}`;
+    const ref = doc(db, 'escuadras', nombreEscuadra);
+    const snapshot = await getDoc(ref);
+
+    // Si no existe en Firestore, lo creamos con fecha mínima
+    if (!snapshot.exists()) {
+      await setDoc(ref, {
+        nombre: nombreEscuadra,
+        ultimaModificacion: Timestamp.fromDate(new Date(0)) // 1970-01-01
+      });
+    }
+
+    escuadras.push({ nombre: nombreEscuadra, lider: null });
   }
 }
 
@@ -58,62 +70,79 @@ function actualizarListaMiembros() {
     ul.appendChild(li);
   });
 }
-async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
+async function cambiarNombreEscuadra(nombreMiembro, nombreAntiguo, nuevoNombre) {
   const escuadra = escuadras.find(e => e.nombre === nombreAntiguo);
-  
+
   if (!escuadra) {
     alert('Escuadra no encontrada');
     return;
   }
 
-  if (escuadra.lider !== nombreLider) {
-    alert('Solo el líder puede cambiar el nombre de la escuadra');
+  const miembro = miembros.find(m => m.nombre === nombreMiembro && m.escuadra === nombreAntiguo);
+  if (!miembro) {
+    alert('No perteneces a esta escuadra');
     return;
   }
 
-  // Actualizar nombre en estructura local
-  escuadra.nombre = nuevoNombre;
-
-  // Actualizar a todos los miembros de esa escuadra localmente
-  miembros.forEach(m => {
-    if (m.escuadra === nombreAntiguo) {
-      m.escuadra = nuevoNombre;
-    }
-  });
-
-  // Actualizar en Firebase
+  // Verificamos en Firebase si se cambió el nombre en los últimos 7 días
   try {
     const escRef = collection(db, 'escuadras');
     const escQuery = query(escRef, where('nombre', '==', nombreAntiguo));
     const escSnapshot = await getDocs(escQuery);
 
-    if (!escSnapshot.empty) {
-      const escDoc = escSnapshot.docs[0];
-      await updateDoc(escDoc.ref, { nombre: nuevoNombre });
+    if (escSnapshot.empty) {
+      alert('Escuadra no encontrada en Firebase');
+      return;
     }
 
-    // Actualizar miembros en Firebase
+    const escDoc = escSnapshot.docs[0];
+    const escData = escDoc.data();
+
+    const ahora = new Date();
+    if (escData.ultimaModificacion?.toDate) {
+      const ultimaFecha = escData.ultimaModificacion.toDate();
+      const diferenciaDias = Math.floor((ahora - ultimaFecha) / (1000 * 60 * 60 * 24));
+
+      if (diferenciaDias < 7) {
+        alert(`⚠️ Solo puedes cambiar el nombre una vez por semana. Intenta en ${7 - diferenciaDias} día(s).`);
+        return;
+      }
+    }
+
+    // ✅ Actualizamos el nombre local
+    escuadra.nombre = nuevoNombre;
+
+    miembros.forEach(m => {
+      if (m.escuadra === nombreAntiguo) {
+        m.escuadra = nuevoNombre;
+      }
+    });
+
+    // 🔁 Actualizar escuadra en Firestore
+    await updateDoc(escDoc.ref, {
+      nombre: nuevoNombre,
+      ultimaModificacion: Timestamp.fromDate(ahora)
+    });
+
+    // 🔁 Actualizar miembros en Firebase
     const miembrosRef = collection(db, 'miembros');
     const miembrosQuery = query(miembrosRef, where('escuadra', '==', nombreAntiguo));
     const miembrosSnapshot = await getDocs(miembrosQuery);
 
-    miembrosSnapshot.forEach(async (doc) => {
+    for (const doc of miembrosSnapshot.docs) {
       await updateDoc(doc.ref, { escuadra: nuevoNombre });
-    });
+    }
 
-    // Volver a renderizar vistas
     actualizarSelectEscuadras();
     actualizarListaMiembros();
     actualizarEstructuraEscuadras();
 
-    alert(`Nombre cambiado a: ${nuevoNombre}`);
+    alert(`✅ Nombre de escuadra cambiado a: ${nuevoNombre}`);
   } catch (error) {
-    console.error('Error al actualizar en Firebase:', error);
+    console.error('❌ Error al cambiar el nombre de la escuadra:', error);
     alert('Hubo un error al actualizar el nombre en Firebase');
   }
 }
-
-
 // Estructura de escuadras visual
 function actualizarEstructuraEscuadras() {
   const container = document.getElementById('estructuraEscuadras');
@@ -126,7 +155,10 @@ function actualizarEstructuraEscuadras() {
 
     div.innerHTML = `
       <div class="escuadra-header">
-        <div class="escuadra-title"><i class="fas fa-users"></i> ${escuadra.nombre}</div>
+       <div class="escuadra-title" style="cursor: pointer; color: #007bff;" onclick="handleEscuadraClick('${escuadra.nombre}')">
+  <i class="fas fa-users"></i> ${escuadra.nombre}
+</div>
+
         <div class="escuadra-leader">${escuadra.lider ? `<i class="fas fa-crown"></i> Líder: ${escuadra.lider}` : '<i class="fas fa-exclamation-circle"></i> Sin líder asignado'}</div>
       </div>
     `;
@@ -249,6 +281,18 @@ if (!esLider && !escActual.lider) {
     alert("Error al registrar miembro");
   }
 });
+window.handleEscuadraClick = async function(nombreActual) {
+  const nuevoNombre = prompt(`Nuevo nombre para ${nombreActual}:`);
+  if (!nuevoNombre || nuevoNombre.trim() === nombreActual) return;
+
+  const miembro = miembros.find(m => m.escuadra === nombreActual && m.nombre); // miembro actual
+  if (!miembro) {
+    alert('No se encontró un miembro válido para autorizar el cambio');
+    return;
+  }
+
+  await cambiarNombreEscuadra(miembro.nombre, nombreActual, nuevoNombre.trim());
+};
 
 
 // Función para copiar ID
@@ -289,7 +333,8 @@ window.switchTab = function (tabId) {
 
 // Al cargar página
 window.addEventListener('DOMContentLoaded', async () => {
-  inicializarEscuadras();
+  await inicializarEscuadras();
+
   actualizarSelectEscuadras();
   await cargarMiembros();
 });

@@ -1,6 +1,6 @@
 import { db } from './firebase-config.js';
 import {
-  collection, addDoc, getDocs, query, orderBy, where, updateDoc
+  collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
 // Variables locales
@@ -9,7 +9,10 @@ let escuadras = [];
 
 // Inicializar escuadras vacías
 function inicializarEscuadras() {
-  escuadras = Array.from({ length: 14 }, (_, i) => ({ nombre: `Escuadra ${i + 1}`, lider: null }));
+  escuadras = [];
+  for (let i = 1; i <= 14; i++) {
+    escuadras.push({ nombre: `Escuadra ${i}`, lider: null });
+  }
 }
 
 // Actualiza el select del formulario
@@ -55,7 +58,6 @@ function actualizarListaMiembros() {
     ul.appendChild(li);
   });
 }
-
 async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
   const escuadra = escuadras.find(e => e.nombre === nombreAntiguo);
   
@@ -69,14 +71,17 @@ async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
     return;
   }
 
+  // Actualizar nombre en estructura local
   escuadra.nombre = nuevoNombre;
 
+  // Actualizar a todos los miembros de esa escuadra localmente
   miembros.forEach(m => {
     if (m.escuadra === nombreAntiguo) {
       m.escuadra = nuevoNombre;
     }
   });
 
+  // Actualizar en Firebase
   try {
     const escRef = collection(db, 'escuadras');
     const escQuery = query(escRef, where('nombre', '==', nombreAntiguo));
@@ -87,6 +92,7 @@ async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
       await updateDoc(escDoc.ref, { nombre: nuevoNombre });
     }
 
+    // Actualizar miembros en Firebase
     const miembrosRef = collection(db, 'miembros');
     const miembrosQuery = query(miembrosRef, where('escuadra', '==', nombreAntiguo));
     const miembrosSnapshot = await getDocs(miembrosQuery);
@@ -95,6 +101,7 @@ async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
       await updateDoc(doc.ref, { escuadra: nuevoNombre });
     });
 
+    // Volver a renderizar vistas
     actualizarSelectEscuadras();
     actualizarListaMiembros();
     actualizarEstructuraEscuadras();
@@ -105,6 +112,7 @@ async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
     alert('Hubo un error al actualizar el nombre en Firebase');
   }
 }
+
 
 // Estructura de escuadras visual
 function actualizarEstructuraEscuadras() {
@@ -137,6 +145,7 @@ function actualizarEstructuraEscuadras() {
         li.className = m.esLider ? 'miembro-item lider' : 'miembro-item';
         li.innerHTML = `
           <div class="miembro-nombre">${m.nombre} ${m.esLider ? '<span class="lider-badge">LÍDER</span>' : ''}</div>
+          
         `;
         ul.appendChild(li);
       });
@@ -155,6 +164,8 @@ async function cargarMiembros() {
   snapshot.forEach(doc => {
     const data = doc.data();
     miembros.push(data);
+
+    // Si es líder, marcarlo en escuadras
     if (data.esLider) {
       const esc = escuadras.find(e => e.nombre === data.escuadra);
       if (esc) esc.lider = data.nombre;
@@ -185,6 +196,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     return;
   }
 
+  // Validar teléfono internacional
   const telefonoRegex = /^\+\d{8,15}$/;
   if (!telefonoRegex.test(telefono)) {
     alert('Número inválido.usa Codigo de pais Ej: +521234567890');
@@ -199,6 +211,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     return;
   }
 
+  // Reemplazo de líder manual
   if (esLider && escActual.lider) {
     const reemplazar = confirm(`La ${escuadra} ya tiene líder: ${escActual.lider}. ¿Reemplazarlo?`);
     if (!reemplazar) return;
@@ -207,20 +220,23 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     if (anterior) anterior.esLider = false;
   }
 
-  if (!esLider && !escActual.lider) {
-    const futurosMiembros = [...miembrosEnEscuadra, { nombre, escuadra }];
-    if (futurosMiembros.length === 4) {
-      esLider = true;
-      escActual.lider = nombre;
-      alert(`ℹ️ ${nombre} ha sido asignado como líder automáticamente.`);
-    }
+  // Si NO se marcó como líder, verificar si debe ser líder automáticamente
+if (!esLider && !escActual.lider) {
+  const futurosMiembros = [...miembrosEnEscuadra, { nombre, escuadra }]; // simulamos agregar
+  if (futurosMiembros.length === 4) {
+    esLider = true;
+    escActual.lider = nombre;
+    alert(`ℹ️ ${nombre} ha sido asignado como líder automáticamente.`);
   }
+}
+
 
   const nuevoMiembro = { nombre, idff, telefono, escuadra, esLider };
 
   try {
     await addDoc(collection(db, 'miembros'), nuevoMiembro);
     miembros.push(nuevoMiembro);
+
     if (esLider) escActual.lider = nombre;
 
     alert("✅ ¡Registrado!");
@@ -234,6 +250,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
   }
 });
 
+
 // Función para copiar ID
 window.copyToClipboard = function (text) {
   navigator.clipboard.writeText(text).then(() => {
@@ -244,7 +261,6 @@ window.copyToClipboard = function (text) {
     setTimeout(() => tooltip.remove(), 2000);
   });
 };
-
 // Solo permitir "+" y números en teléfono
 document.getElementById('telefono').addEventListener('input', function () {
   this.value = this.value.replace(/[^\d+]/g, '');
@@ -255,10 +271,12 @@ document.getElementById('idff').addEventListener('input', function () {
   this.value = this.value.replace(/\D/g, '');
 });
 
+
 // Cambiar pestañas
 window.switchTab = function (tabId) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
   document.getElementById(`${tabId}-tab`).classList.add('active');
   event.currentTarget.classList.add('active');
 

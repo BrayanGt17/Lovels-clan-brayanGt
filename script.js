@@ -22,11 +22,11 @@ form.addEventListener('submit', async (e) => {
 
   try {
     await addDoc(collection(db, 'miembros'), {
-      nombre,
-      idff,
-      telefono,
-      escuadra,
-      timestamp: new Date()
+     nombre,
+        idff,
+        telefono,
+        escuadra,
+        esLider: false,
     });
 
     alert("✅ ¡Registrado!");

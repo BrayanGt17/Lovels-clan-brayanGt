@@ -58,6 +58,36 @@ function actualizarListaMiembros() {
     ul.appendChild(li);
   });
 }
+function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
+  const escuadra = escuadras.find(e => e.nombre === nombreAntiguo);
+  
+  if (!escuadra) {
+    alert('Escuadra no encontrada');
+    return;
+  }
+
+  if (escuadra.lider !== nombreLider) {
+    alert('Solo el líder puede cambiar el nombre de la escuadra');
+    return;
+  }
+
+  // Cambiar nombre en estructura local
+  escuadra.nombre = nuevoNombre;
+
+  // Actualizar a todos los miembros de esa escuadra localmente
+  miembros.forEach(m => {
+    if (m.escuadra === nombreAntiguo) {
+      m.escuadra = nuevoNombre;
+    }
+  });
+
+  // Volver a renderizar vistas
+  actualizarSelectEscuadras();
+  actualizarListaMiembros();
+  actualizarEstructuraEscuadras();
+
+  alert(`Nombre cambiado a: ${nuevoNombre}`);
+}
 
 // Estructura de escuadras visual
 function actualizarEstructuraEscuadras() {
@@ -140,6 +170,12 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     alert("Este ID ya está registrado.");
     return;
   }
+// Validar teléfono: debe comenzar con '+' y contener solo números (mínimo 8 dígitos)
+const telefonoRegex = /^\+\d{8,15}$/;
+if (!telefonoRegex.test(telefono)) {
+  alert('Por favor ingresa un número válido con código de país. Ej: +521234567890');
+  return;
+}
 
   // Verificar líder duplicado
   const escActual = escuadras.find(e => e.nombre === escuadra);
@@ -152,6 +188,12 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
     const anterior = miembros.find(m => m.escuadra === escuadra && m.nombre === escActual.lider);
     if (anterior) anterior.esLider = false;
   }
+// Validar si ya hay 4 miembros en la escuadra
+const miembrosEnEscuadra = miembros.filter(m => m.escuadra === escuadra);
+if (miembrosEnEscuadra.length >= 4) {
+  alert(`La ${escuadra} ya tiene 4 miembros. No se pueden agregar más.`);
+  return;
+}
 
   const nuevoMiembro = { nombre, idff, telefono, escuadra, esLider };
 
@@ -183,6 +225,10 @@ window.copyToClipboard = function (text) {
     setTimeout(() => tooltip.remove(), 2000);
   });
 };
+// Solo permitir + y números en tiempo real
+document.getElementById('telefono').addEventListener('input', function () {
+  this.value = this.value.replace(/[^\d+]/g, '');
+});
 
 // Validar que solo se escriban números en el ID
 document.getElementById('idff').addEventListener('input', function () {

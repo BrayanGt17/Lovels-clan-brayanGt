@@ -1,73 +1,213 @@
-// script.js
 import { db } from './firebase-config.js';
 import {
   collection, addDoc, getDocs, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
 
-const form = document.getElementById('registroForm');
-const lista = document.getElementById('listaMiembros');
+// Variables locales
+let miembros = [];
+let escuadras = [];
 
-form.addEventListener('submit', async (e) => {
+// Inicializar escuadras vacías
+function inicializarEscuadras() {
+  escuadras = [];
+  for (let i = 1; i <= 14; i++) {
+    escuadras.push({ nombre: `Escuadra ${i}`, lider: null });
+  }
+}
+
+// Actualiza el select del formulario
+function actualizarSelectEscuadras() {
+  const select = document.getElementById('escuadra');
+  select.innerHTML = '<option value="">Selecciona una escuadra</option>';
+
+  escuadras.forEach(e => {
+    const option = document.createElement('option');
+    option.value = e.nombre;
+    option.textContent = e.lider ? `${e.nombre} (Líder: ${e.lider})` : e.nombre;
+    select.appendChild(option);
+  });
+}
+
+// Mostrar lista de miembros por escuadra
+function actualizarListaMiembros() {
+  const listaContainer = document.getElementById('listaMiembros');
+  const contador = document.getElementById('contadorMiembros');
+  const totalMiembros = document.getElementById('totalMiembros');
+
+  contador.textContent = miembros.length;
+  totalMiembros.textContent = miembros.length;
+
+  if (miembros.length === 0) {
+    listaContainer.innerHTML = '<div class="empty">No hay miembros registrados aún.</div>';
+    return;
+  }
+
+  listaContainer.innerHTML = '<ul class="miembros-list"></ul>';
+  const ul = listaContainer.querySelector('ul');
+
+  miembros.forEach(m => {
+    const li = document.createElement('li');
+    li.className = m.esLider ? 'miembro-item lider' : 'miembro-item';
+
+    li.innerHTML = `
+      <div class="miembro-nombre">${m.nombre} ${m.esLider ? '<span class="lider-badge">LÍDER</span>' : ''}</div>
+      <div class="miembro-detail"><i class="fas fa-users"></i> Escuadra: ${m.escuadra}</div>
+      <div class="miembro-detail"><i class="fas fa-id-card"></i> ID: ${m.idff}</div>
+      <div class="miembro-detail"><i class="fas fa-phone"></i> 📞 ${m.telefono}</div>
+    `;
+    ul.appendChild(li);
+  });
+}
+
+// Estructura de escuadras visual
+function actualizarEstructuraEscuadras() {
+  const container = document.getElementById('estructuraEscuadras');
+  container.innerHTML = '';
+
+  escuadras.forEach(escuadra => {
+    const miembrosEscuadra = miembros.filter(m => m.escuadra === escuadra.nombre);
+    const div = document.createElement('div');
+    div.className = 'escuadra-group';
+
+    div.innerHTML = `
+      <div class="escuadra-header">
+        <div class="escuadra-title"><i class="fas fa-users"></i> ${escuadra.nombre}</div>
+        <div class="escuadra-leader">${escuadra.lider ? `<i class="fas fa-crown"></i> Líder: ${escuadra.lider}` : '<i class="fas fa-exclamation-circle"></i> Sin líder asignado'}</div>
+      </div>
+    `;
+
+    const ul = document.createElement('ul');
+    ul.className = 'miembros-list';
+
+    if (miembrosEscuadra.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'miembro-item';
+      li.textContent = 'No hay miembros en esta escuadra.';
+      ul.appendChild(li);
+    } else {
+      miembrosEscuadra.forEach(m => {
+        const li = document.createElement('li');
+        li.className = m.esLider ? 'miembro-item lider' : 'miembro-item';
+        li.innerHTML = `
+          <div class="miembro-nombre">${m.nombre} ${m.esLider ? '<span class="lider-badge">LÍDER</span>' : ''}</div>
+          <div class="miembro-detail"><i class="fas fa-id-card"></i> ID: ${m.idff}</div>
+          <div class="miembro-detail"><i class="fas fa-phone"></i> 📞 ${m.telefono}</div>
+        `;
+        ul.appendChild(li);
+      });
+    }
+
+    div.appendChild(ul);
+    container.appendChild(div);
+  });
+}
+
+// Cargar datos desde Firebase
+async function cargarMiembros() {
+  miembros = [];
+
+  const snapshot = await getDocs(collection(db, 'miembros'));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    miembros.push(data);
+
+    // Si es líder, marcarlo en escuadras
+    if (data.esLider) {
+      const esc = escuadras.find(e => e.nombre === data.escuadra);
+      if (esc) esc.lider = data.nombre;
+    }
+  });
+
+  actualizarListaMiembros();
+  actualizarEstructuraEscuadras();
+}
+
+// Registrar nuevo miembro
+document.getElementById('registroForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const nombre = document.getElementById('nombre').value.trim();
   const idff = document.getElementById('idff').value.trim();
   const telefono = document.getElementById('telefono').value.trim();
   const escuadra = document.getElementById('escuadra').value;
+  const esLider = document.getElementById('esLider').checked;
 
   if (!nombre || !idff || !telefono || !escuadra) {
     alert("Completa todos los campos.");
     return;
   }
 
+  if (miembros.some(m => m.idff === idff)) {
+    alert("Este ID ya está registrado.");
+    return;
+  }
+
+  // Verificar líder duplicado
+  const escActual = escuadras.find(e => e.nombre === escuadra);
+  if (esLider && escActual.lider) {
+    if (!confirm(`La ${escuadra} ya tiene líder: ${escActual.lider}. ¿Reemplazarlo?`)) {
+      return;
+    }
+
+    // Quitar liderazgo al anterior
+    const anterior = miembros.find(m => m.escuadra === escuadra && m.nombre === escActual.lider);
+    if (anterior) anterior.esLider = false;
+  }
+
+  const nuevoMiembro = { nombre, idff, telefono, escuadra, esLider };
+
   try {
-    await addDoc(collection(db, 'miembros'), {
-     nombre,
-        idff,
-        telefono,
-        escuadra,
-        esLider: false,
-    });
+    await addDoc(collection(db, 'miembros'), nuevoMiembro);
+    miembros.push(nuevoMiembro);
+    if (esLider) {
+      escActual.lider = nombre;
+    }
 
     alert("✅ ¡Registrado!");
-    form.reset();
-    mostrarMiembros();
- } catch (error) {
-  console.error("❌ Error al guardar:", error.message);
-  alert("❌ Hubo un error: " + error.message);
-}
-
+    e.target.reset();
+    actualizarSelectEscuadras();
+    actualizarListaMiembros();
+    actualizarEstructuraEscuadras();
+  } catch (err) {
+    console.error("❌ Error:", err);
+    alert("Error al registrar miembro");
+  }
 });
 
-async function mostrarMiembros() {
-  try {
-    lista.innerHTML = "Cargando...";
+// Función para copiar ID
+window.copyToClipboard = function (text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip-copied';
+    tooltip.textContent = '¡ID copiado al portapapeles!';
+    document.body.appendChild(tooltip);
+    setTimeout(() => tooltip.remove(), 2000);
+  });
+};
 
-    const miembrosSnap = await getDocs(query(collection(db, "miembros"), orderBy("escuadra")));
-    const escuadras = {};
+// Validar que solo se escriban números en el ID
+document.getElementById('idff').addEventListener('input', function () {
+  this.value = this.value.replace(/\D/g, '');
+});
 
-    miembrosSnap.forEach(doc => {
-      const d = doc.data();
-      if (!escuadras[d.escuadra]) escuadras[d.escuadra] = [];
-      escuadras[d.escuadra].push(d);
-    });
+// Cambiar pestañas
+window.switchTab = function (tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
 
-    let html = '';
-    Object.keys(escuadras).forEach(nombre => {
-      html += `<h3>${nombre}</h3><ul>`;
-      escuadras[nombre].forEach(m => {
-        html += `<li><strong>${m.nombre}</strong> | ID: ${m.idff} | 📞 ${m.telefono}</li>`;
-      });
-      html += '</ul>';
-    });
+  document.getElementById(`${tabId}-tab`).classList.add('active');
+  event.currentTarget.classList.add('active');
 
-    lista.innerHTML = html || "No hay miembros aún.";
-  } catch (e) {
-    console.error("❌ Error al cargar miembros:", e.message);
-    lista.innerHTML = "Error al cargar miembros.";
+  if (tabId === 'miembros') {
+    actualizarListaMiembros();
+  } else if (tabId === 'escuadras') {
+    actualizarEstructuraEscuadras();
   }
-}
+};
 
-
-// Mostrar lista al cargar
-mostrarMiembros();
+// Al cargar página
+window.addEventListener('DOMContentLoaded', async () => {
+  inicializarEscuadras();
+  actualizarSelectEscuadras();
+  await cargarMiembros();
+});

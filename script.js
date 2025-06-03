@@ -32,35 +32,42 @@ form.addEventListener('submit', async (e) => {
     alert("✅ ¡Registrado!");
     form.reset();
     mostrarMiembros();
-  } catch (error) {
-    console.error("Error:", error);
-    alert("❌ Hubo un error.");
-  }
+ } catch (error) {
+  console.error("❌ Error al guardar:", error.message);
+  alert("❌ Hubo un error: " + error.message);
+}
+
 });
 
 async function mostrarMiembros() {
-  lista.innerHTML = "Cargando...";
+  try {
+    lista.innerHTML = "Cargando...";
 
-  const miembrosSnap = await getDocs(query(collection(db, "miembros"), orderBy("escuadra")));
-  const escuadras = {};
+    const miembrosSnap = await getDocs(query(collection(db, "miembros"), orderBy("escuadra")));
+    const escuadras = {};
 
-  miembrosSnap.forEach(doc => {
-    const d = doc.data();
-    if (!escuadras[d.escuadra]) escuadras[d.escuadra] = [];
-    escuadras[d.escuadra].push(d);
-  });
-
-  let html = '';
-  Object.keys(escuadras).forEach(nombre => {
-    html += `<h3>${nombre}</h3><ul>`;
-    escuadras[nombre].forEach(m => {
-      html += `<li><strong>${m.nombre}</strong> | ID: ${m.idff} | 📞 ${m.telefono}</li>`;
+    miembrosSnap.forEach(doc => {
+      const d = doc.data();
+      if (!escuadras[d.escuadra]) escuadras[d.escuadra] = [];
+      escuadras[d.escuadra].push(d);
     });
-    html += '</ul>';
-  });
 
-  lista.innerHTML = html || "No hay miembros aún.";
+    let html = '';
+    Object.keys(escuadras).forEach(nombre => {
+      html += `<h3>${nombre}</h3><ul>`;
+      escuadras[nombre].forEach(m => {
+        html += `<li><strong>${m.nombre}</strong> | ID: ${m.idff} | 📞 ${m.telefono}</li>`;
+      });
+      html += '</ul>';
+    });
+
+    lista.innerHTML = html || "No hay miembros aún.";
+  } catch (e) {
+    console.error("❌ Error al cargar miembros:", e.message);
+    lista.innerHTML = "Error al cargar miembros.";
+  }
 }
+
 
 // Mostrar lista al cargar
 mostrarMiembros();

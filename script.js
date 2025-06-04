@@ -136,7 +136,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
   const escuadra = document.getElementById('escuadra').value;
   let esLider = document.getElementById('esLider').checked;
 
-  if (!nombre || !idff || !telefono || !escuadra) {
+  if (!nombre || !idff || !telefono /*|| !escuadra*/) {
     alert("Completa todos los campos.");
     return;
   }

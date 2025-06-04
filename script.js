@@ -73,7 +73,7 @@ function actualizarEstructuraEscuadras() {
 
     div.innerHTML = `
       <div class="escuadra-header">
-        <div class="escuadra-title" style="cursor: pointer; color: #007bff;" onclick="handleEscuadraClick('${escuadra.nombre}')">
+        <div class="escuadra-title" style="cursor: pointer; color:rgb(255, 255, 255);" onclick="handleEscuadraClick('${escuadra.nombre}')">
           <i class="fas fa-users"></i> ${escuadra.nombre}
         </div>
         <div class="escuadra-leader">${escuadra.lider ? `<i class="fas fa-crown"></i> Líder: ${escuadra.lider}` : '<i class="fas fa-exclamation-circle"></i> Sin líder asignado'}</div>
@@ -148,7 +148,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
 
   const telefonoRegex = /^\+\d{8,15}$/;
   if (!telefonoRegex.test(telefono)) {
-    alert('Número inválido. Ej: +521234567890');
+    alert('Número inválido. Usa Codigo de Pais Ej: +521234567890');
     return;
   }
 
@@ -156,7 +156,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
   const miembrosEnEscuadra = miembros.filter(m => m.escuadra === escuadra);
 
   if (miembrosEnEscuadra.length >= 4) {
-    alert(`La ${escuadra} ya tiene 4 miembros.`);
+    alert(`La ${escuadra} ya tiene 4 miembros escoge otra.`);
     return;
   }
 

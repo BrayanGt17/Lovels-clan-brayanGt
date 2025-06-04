@@ -7,7 +7,7 @@ import {
 let miembros = [];
 let escuadras = [];
 
-// Inicializar escuadras vacías
+/*// Inicializar escuadras vacías
 function inicializarEscuadras() {
   escuadras = [];
   for (let i = 1; i <= 14; i++) {
@@ -16,7 +16,7 @@ function inicializarEscuadras() {
 }
 
 // Actualiza el select del formulario
-function actualizarSelectEscuadras() {
+/*function actualizarSelectEscuadras() {
   const select = document.getElementById('escuadra');
   select.innerHTML = '<option value="">Selecciona una escuadra</option>';
 
@@ -26,7 +26,7 @@ function actualizarSelectEscuadras() {
     option.textContent = e.lider ? `${e.nombre} (Líder: ${e.lider})` : e.nombre;
     select.appendChild(option);
   });
-}
+}*/
 
 // Mostrar lista de miembros por escuadra
 function actualizarListaMiembros() {
@@ -184,7 +184,7 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
 
     alert("✅ ¡Registrado!");
     e.target.reset();
-    actualizarSelectEscuadras();
+    //actualizarSelectEscuadras();
     actualizarListaMiembros();
     actualizarEstructuraEscuadras();
   } catch (err) {
@@ -216,7 +216,7 @@ window.switchTab = function (tabId) {
 
 // Inicializar
 window.addEventListener('DOMContentLoaded', async () => {
-  inicializarEscuadras();
-  actualizarSelectEscuadras();
+  //inicializarEscuadras();
+  //actualizarSelectEscuadras();
   await cargarMiembros();
 });

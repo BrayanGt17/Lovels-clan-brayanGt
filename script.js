@@ -59,71 +59,7 @@ function actualizarListaMiembros() {
   });
 }
 
-// Cambiar nombre de la escuadra
-async function cambiarNombreEscuadra(nombreLider, nombreAntiguo, nuevoNombre) {
-  const escuadra = escuadras.find(e => e.nombre === nombreAntiguo);
-  
-  if (!escuadra) {
-    alert('Escuadra no encontrada');
-    return;
-  }
 
-  if (escuadra.lider !== nombreLider) {
-    alert('Solo el líder puede cambiar el nombre de la escuadra');
-    return;
-  }
-
-  const ahora = new Date();
-  const ultimaModificacion = escuadra.ultimaModificacion ? new Date(escuadra.ultimaModificacion) : null;
-  const diasDesdeUltimoCambio = ultimaModificacion ? Math.floor((ahora - ultimaModificacion) / (1000 * 60 * 60 * 24)) : null;
-
-  if (diasDesdeUltimoCambio !== null && diasDesdeUltimoCambio < 7) {
-    alert('Solo se puede cambiar el nombre una vez por semana.');
-    return;
-  }
-
-  // Cambiar nombre en estructura local
-  escuadra.nombre = nuevoNombre;
-  escuadra.ultimaModificacion = ahora.toISOString();
-
-  // Actualizar a todos los miembros de esa escuadra localmente
-  miembros.forEach(m => {
-    if (m.escuadra === nombreAntiguo) {
-      m.escuadra = nuevoNombre;
-    }
-  });
-
-  // Actualizar en Firebase
-  try {
-    const escRef = collection(db, 'escuadras');
-    const escQuery = query(escRef, where('nombre', '==', nombreAntiguo));
-    const escSnapshot = await getDocs(escQuery);
-
-    if (!escSnapshot.empty) {
-      const escDoc = escSnapshot.docs[0];
-      await updateDoc(escDoc.ref, { nombre: nuevoNombre, ultimaModificacion: serverTimestamp() });
-    }
-
-    // Actualizar miembros en Firebase
-    const miembrosRef = collection(db, 'miembros');
-    const miembrosQuery = query(miembrosRef, where('escuadra', '==', nombreAntiguo));
-    const miembrosSnapshot = await getDocs(miembrosQuery);
-
-    miembrosSnapshot.forEach(async (doc) => {
-      await updateDoc(doc.ref, { escuadra: nuevoNombre });
-    });
-
-    // Volver a renderizar vistas
-    actualizarSelectEscuadras();
-    actualizarListaMiembros();
-    actualizarEstructuraEscuadras();
-
-    alert(`Nombre cambiado a: ${nuevoNombre}`);
-  } catch (error) {
-    console.error('Error al actualizar en Firebase:', error);
-    alert('Hubo un error al actualizar el nombre en Firebase');
-  }
-}
 
 // Estructura de escuadras visual
 function actualizarEstructuraEscuadras() {
@@ -169,25 +105,6 @@ function actualizarEstructuraEscuadras() {
     div.appendChild(ul);
     container.appendChild(div);
   });
-}
-
-// Manejo de clic en el nombre de la escuadra para cambiarlo
-window.handleEscuadraClick = async function(nombreEscuadra) {
-  const nuevoNombre = prompt(`Cambiar nombre de "${nombreEscuadra}" a:`);
-  if (!nuevoNombre || nuevoNombre.trim() === nombreEscuadra) return;
-
-  const miembrosEscuadra = miembros.filter(m => m.escuadra === nombreEscuadra);
-
-  // Permitir a cualquier miembro cambiarlo solo 1 vez por semana
-  const solicitante = prompt('Ingresa tu nombre para confirmar:');
-  const miembroValido = miembrosEscuadra.find(m => m.nombre === solicitante);
-
-  if (!miembroValido) {
-    alert('No perteneces a esta escuadra.');
-    return;
-  }
-
-  await cambiarNombreEscuadra(miembroValido.nombre, nombreEscuadra, nuevoNombre.trim());
 }
 
 // Cargar datos desde Firebase

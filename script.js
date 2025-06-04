@@ -16,7 +16,7 @@ function inicializarEscuadras() {
 }
 
 // Actualiza el select del formulario
-function actualizarSelectEscuadras() {
+/*function actualizarSelectEscuadras() {
   const select = document.getElementById('escuadra');
   select.innerHTML = '<option value="">Selecciona una escuadra</option>';
 
@@ -26,7 +26,7 @@ function actualizarSelectEscuadras() {
     option.textContent = e.lider ? `${e.nombre} (Líder: ${e.lider})` : e.nombre;
     select.appendChild(option);
   });
-}
+}*/
 
 // Mostrar lista de miembros por escuadra
 function actualizarListaMiembros() {
@@ -62,7 +62,7 @@ function actualizarListaMiembros() {
 
 
 // Estructura de escuadras visual
-function actualizarEstructuraEscuadras() {
+/*function actualizarEstructuraEscuadras() {
   const container = document.getElementById('estructuraEscuadras');
   container.innerHTML = '';
 
@@ -105,7 +105,7 @@ function actualizarEstructuraEscuadras() {
     div.appendChild(ul);
     container.appendChild(div);
   });
-}
+}*/
 
 // Cargar datos desde Firebase
 async function cargarMiembros() {
@@ -123,7 +123,7 @@ async function cargarMiembros() {
   });
 
   actualizarListaMiembros();
-  actualizarEstructuraEscuadras();
+  //actualizarEstructuraEscuadras();
 }
 
 // Registrar nuevo miembro
@@ -184,9 +184,9 @@ document.getElementById('registroForm').addEventListener('submit', async (e) => 
 
     alert("✅ ¡Registrado!");
     e.target.reset();
-    actualizarSelectEscuadras();
+    //actualizarSelectEscuadras();
     actualizarListaMiembros();
-    actualizarEstructuraEscuadras();
+    //actualizarEstructuraEscuadras();
   } catch (err) {
     console.error("❌ Error:", err);
     alert("Error al registrar miembro");
@@ -210,13 +210,13 @@ window.switchTab = function (tabId) {
   if (tabId === 'miembros') {
     actualizarListaMiembros();
   } else if (tabId === 'escuadras') {
-    actualizarEstructuraEscuadras();
+    //actualizarEstructuraEscuadras();
   }
 };
 
 // Inicializar
 window.addEventListener('DOMContentLoaded', async () => {
   inicializarEscuadras();
-  actualizarSelectEscuadras();
+  //actualizarSelectEscuadras();
   await cargarMiembros();
 });
